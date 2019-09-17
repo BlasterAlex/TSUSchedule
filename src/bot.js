@@ -62,7 +62,7 @@ module.exports = function (bot) {
           bot: bot,
           chatId: chatId,
           today: today,
-          user: user,
+          user: user[0],
           schedule: schedule
         });
       });
