@@ -1,0 +1,32 @@
+{
+  "name": "tsuschedule",
+  "version": "1.0.0",
+  "description": "'Telegram bot for getting lessons schedule'",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": "12.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "'https://github.com/BlasterAlex/TSUSchedule'"
+  },
+  "keywords": [
+    "bot",
+    "telegram",
+    "tsu"
+  ],
+  "author": "BlasterAlex",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "he": "^1.2.0",
+    "moment-timezone": "^0.5.26",
+    "mongoose": "^5.7.1",
+    "node-telegram-bot-api": "^0.30.0",
+    "puppeteer": "^1.20.0",
+    "xlsx": "^0.15.1"
+  }
+}
