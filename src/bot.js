@@ -6,28 +6,17 @@ var config = JSON.parse(fs.readFileSync('config/config.json'));
 module.exports = function (bot) {
   bot.onText(/(.+)/, (msg) => {
     const chatId = msg.chat.id;
-    const messages = msg.text.split(' ');
     var today = moment().tz(config.timeZone, true);
 
     // Разбор команд
-    var commands = require('./utils/comParser')(bot, chatId, messages);
-    var day = commands.day;
-
+    var commands = require('./utils/comParser')(bot, chatId, msg.text);
     if (commands.exit) return;
 
-    // Корректная смена недели
-    if (day <= 0) {
-      day = 6;
-      week--;
-    } else if (day > 6) {
-      day = 1;
-      week++;
-    }
-    // Установка даты для вывода
-    let distance = (day + 7 - today.day()) % 7;
-    today.add(distance, 'days');
+    // Сдвиг текущего дня
+    today.add(commands.fromNow, 'days');
 
     // Регистрация
+    let messages = msg.text.split(' ');
     if (commands.registration !== false)
       return require('./commands/registration')(bot, chatId, messages.slice(commands.registration + 1));
 
@@ -41,29 +30,51 @@ module.exports = function (bot) {
           parse_mode: 'markdown'
         });
 
-      // Получение расписания с сайта
-      require('./utils/scheduleGetter')({
-        bot: bot,
-        user: user[0],
-        today: today
-      }, function (schedule) {
+      // Поиск института пользователя
+      require('./repositories/InstituteRepository').findByName(user[0].institute, function (inst) {
 
-        // Требуется расписание на один день
-        if (commands.onWeek === false)
-          return require('./commands/getOneDay')({
+        if (inst.length === 0)
+          return bot.sendMessage(chatId, 'Не могу найти институт *"' + user[0].institute + '"*.\n' +
+            'Пожалуйста, выполните повторную регистрацию.\n' +
+            fs.readFileSync('data/messages/instituteList.txt'), {
+            parse_mode: 'markdown'
+          });
+
+        // Получение расписания с сайта
+        require('./utils/scheduleGetter')({
+          bot: bot,
+          user: user[0],
+          inst: inst[0],
+          today: today,
+          week: today.diff(moment(config.academYBegin, 'DD/MM/YYYY'), 'weeks') + 1
+        }, function (schedule) {
+
+          let isEmpty = a => Array.isArray(a) && a.every(isEmpty);
+          if (isEmpty(schedule))
+            return bot.sendMessage(chatId, 'Я не смог найти расписание для группы *"' +
+              user[0].group + '"*.\n\n' +
+              fs.readFileSync('data/messages/whoami.txt'), {
+              parse_mode: 'markdown'
+            });
+
+          // Требуется расписание на один день
+          if (commands.onWeek === false)
+            return require('./commands/getOneDay')({
+              bot: bot,
+              chatId: chatId,
+              today: today,
+              schedule: schedule[today.day() - 1]
+            });
+
+          // Требуется расписание на неделю
+          require('./commands/getOneWeek')({
             bot: bot,
             chatId: chatId,
             today: today,
-            schedule: schedule[day - 1]
+            withoutDay: commands.withoutDay,
+            user: user[0],
+            schedule: schedule
           });
-
-        // Требуется расписание на неделю
-        require('./commands/getOneWeek')({
-          bot: bot,
-          chatId: chatId,
-          today: today,
-          user: user[0],
-          schedule: schedule
         });
       });
     });

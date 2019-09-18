@@ -4,16 +4,21 @@ const cheerio = require('cheerio'); // for html parsing
 const he = require('he'); // for decoding html entities
 const moment = require('moment-timezone'); // for working with dates
 
-const weekTemplate = 'нед';
 var config = JSON.parse(require('fs').readFileSync('config/config.json'));
 
 module.exports = function (param, callback) {
 
   var bot = param.bot;
   var today = param.today
+  var week = param.week;
   var user = param.user;
+  var inst = param.inst;
   var chatId = user.chatId;
-  var week = today.diff(moment(config.academYBegin, 'DD/MM/YYYY'), 'weeks') + 1;
+
+  // Разбор шаблона
+  inst.template = inst.template
+    .replace(/\<%=year%\>/g, today.year())
+    .replace(/\<%=number%\>/g, '/\d+/');
 
   // Получение страницы сайта расписаний
   let URL = config.scheduleURL;
@@ -25,7 +30,7 @@ module.exports = function (param, callback) {
     var file;
     $('.container .row .col-lg-8 .card-body p a').each(function () {
       let link = $(this).attr('href');
-      if (link.indexOf(user.institute) !== -1 && link.indexOf(week + weekTemplate) !== -1)
+      if (file === undefined && link.indexOf(inst.realName) !== -1 && link.search(week + inst.template) !== -1)
         file = link;
     });
 
@@ -46,20 +51,26 @@ module.exports = function (param, callback) {
 
       // Чтение полученного файла
       var wb = XLSX.read(data, { type: 'buffer' });
-      var ws = wb.Sheets[wb.SheetNames[user.course - 1]];
+      var ws;
+      if (['ИЗОиДПИ', 'АСИ-Д', 'ГумПИ-Ф', 'ИФКиС'].indexOf(user.institute) === -1)
+        ws = wb.Sheets[wb.SheetNames[user.course - 1]];
+      else
+        ws = wb.Sheets[wb.SheetNames[1]];
 
       $ = cheerio.load(XLSX.utils.sheet_to_html(ws));
+
       var write = false; // флаг для записи нужного расписания
       var schedule = [[], [], [], [], [], []]; // расписание на неделю
 
       $('body table tbody tr').each(function () { // каждая строка
 
         // Поиск расписания для группы
-        if ($(this).text() === user.group)
+        if ($(this).text() === user.group) {
           write = true;
-        else if (write && !$(this).find("td").text().match(/\d-я/))
-          write = false;
-        else {
+        } else if (write && !$(this).find("td").text().match(/\d-я/)) {
+          if ($(this).text().indexOf('Пара') === -1)
+            write = false;
+        } else {
           let pairNum;
           let dayNum = 0;
 

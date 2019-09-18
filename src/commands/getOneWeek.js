@@ -13,7 +13,12 @@ module.exports = function (param) {
     parse_mode: 'markdown'
   });
 
-  let html = require('../utils/tableGenerator')(param.today, param.user, schedule);
+  let html = require('../utils/tableGenerator')({
+    today: param.today,
+    withoutDay: param.withoutDay,
+    user: param.user,
+    schedule: schedule
+  });
   (async () => {
 
     const width = 1550;

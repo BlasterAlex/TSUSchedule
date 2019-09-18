@@ -1,7 +1,11 @@
 const cheerio = require('cheerio');
 const moment = require('moment');
 
-module.exports = function (today, user, schedule) {
+module.exports = function (param) {
+
+  var today = param.today;
+  var user = param.user;
+  var schedule = param.schedule;
 
   // Формирование html
   $ = cheerio.load(
@@ -23,11 +27,16 @@ module.exports = function (today, user, schedule) {
     , { decodeEntities: false });
 
   // Заголовок таблицы
-  for (let i = 1; i <= schedule.length; ++i)
+  for (let i = 1; i <= schedule.length; ++i) {
+    let background = '';
+    if (i === moment(today).day() && !param.withoutDay)
+      background = 'background: #f1f2c2;';
+
     $('body table tbody #table-header').append(
-      '<td style="width:200px; text-align: center;">' +
+      '<td style="width: 200px; text-align: center; ' + background + '">' +
       moment(today).day(i).locale('ru').format('dddd, DD MMMM').capitalize() +
       '</td>');
+  }
   $('body table tbody #table-header').append(
     '<td style="background: #ebe2be; width:1px; white-space:nowrap; text-align: center;">Пара</td>');
 
@@ -41,7 +50,7 @@ module.exports = function (today, user, schedule) {
     // Столбцы таблицы
     for (let j = 0; j < schedule.length; ++j) {
       let background = '';
-      if ((j + 1) === moment(today).day())
+      if ((j + 1) === moment(today).day() && !param.withoutDay)
         background = 'background: #f1f2c2;';
 
       $('body table tbody #' + lessoId).append(
