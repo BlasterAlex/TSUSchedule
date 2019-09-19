@@ -22,7 +22,7 @@ module.exports = function (param) {
   (async () => {
 
     const width = 1550;
-    const height = 1350;
+    const height = 1400;
 
     const browser = await puppeteer.launch({
       headless: true,
