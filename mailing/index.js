@@ -51,7 +51,7 @@ bot.on('callback_query', function (msg) {
       require('../src/repositories/UserRepository').getAll(function (list) {
         console.log('\nСписок получателей:');
         list.forEach(function (user) {
-          // bot.sendMessage(user.chatId, fs.readFileSync('mailing/message.txt'), { parse_mode: 'markdown' });
+          bot.sendMessage(user.chatId, fs.readFileSync('mailing/message.txt'), { parse_mode: 'markdown' });
           console.log(user.chatId);
         });
       });

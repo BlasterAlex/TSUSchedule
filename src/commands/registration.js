@@ -13,10 +13,11 @@ module.exports = function (bot, chatId, data) {
   let user = {
     chatId: chatId,
     institute: data[0],
-    course: data[1],
+    course: parseInt(data[1]),
     group: data[2]
   };
 
+  // Проверка института
   require('../repositories/InstituteRepository').findByName(user.institute, function (inst) {
 
     if (inst.length === 0)
@@ -24,6 +25,11 @@ module.exports = function (bot, chatId, data) {
         fs.readFileSync('data/messages/instituteList.txt'), {
         parse_mode: 'markdown'
       });
+
+    // Проверка номера курса
+    if (!(Number.isInteger(user.course) && user.course > 0))
+      return bot.sendMessage(chatId, 'Неправильно введен номер курса, перепроверьте вводимые данные',
+        { parse_mode: 'markdown' });
 
     // Добавление нового или изменение старого пользователя
     User.findOneAndUpdate({ chatId: chatId }, user, { upsert: true }, function (err, res) {
