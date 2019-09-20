@@ -12,9 +12,15 @@ module.exports = function (param) {
     '<html>' +
     '<head>' +
     '  <meta charset = "utf-8" />' +
+    '  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono" rel="stylesheet"></link>' +
+    '  <style type="text/css">' +
+    '    body { ' +
+    '      font-family: "Roboto Mono";' +
+    '    }' +
+    '  </style>' +
     '</head>' +
     '<body>' +
-    '  <table cellspacing="2" border="2" cellpadding="5" style="height: 100%; border-radius: 10px">' +
+    '  <table cellspacing="2" border="2" cellpadding="5" style="border-radius: 10px">' +
     '    <tr>' +
     '      <th colspan="8" style="background: #fff7d9; height: 40px;">' + user.group + '</th>' +
     '    </tr>' +
@@ -84,12 +90,13 @@ module.exports = function (param) {
 
       $('body table tbody #' + lessoId).append(
         '<td valign="top" style="width:230px; text-align: center; ' + background + '">'
-        + text +
+        + text.slice(0, -4) +
         '</td>');
     }
 
     $('body table tbody #' + lessoId).append('<td style="background: #f5f2e6; text-align: center;">' + (i + 1) + '-я</td>')
   }
 
+  // require('fs').writeFileSync('test.html', $.html());
   return $.html();
 };

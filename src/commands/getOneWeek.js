@@ -21,30 +21,51 @@ module.exports = function (param) {
   });
   (async () => {
 
-    const width = 1550;
-    const height = 1500;
-
+    // Запуск браузера
     const browser = await puppeteer.launch({
       headless: true,
+      defaultViewport: null,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
-        `--window-size=${width},${height}`
+        '--window-size=1550,2000',
+        '--start-maximized'
       ]
     });
-    const page = await browser.newPage();
 
+    // Создание новой вкладки
+    const page = await browser.newPage();
+    await page.setViewport({
+      width: 0,
+      height: 0,
+    });
+    await page.setContent(html);
+    await page.evaluateHandle('document.fonts.ready');
+    await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.2.1.min.js' });
+
+    // Определение размеров таблицы
+    let sizes = await page.evaluate(() => {
+      const $ = window.$;
+      return [$('body table').width(), $('body table').height()];
+    });
+
+    console.log('Table size: ', sizes);
+    const width = sizes[0] + 25;
+    const height = sizes[1] + 25;
+
+    // Установка поля зрения
     await page.setViewport({
       width: width,
       height: height,
       deviceScaleFactor: 1,
     });
 
-    await page.setContent(html);
+    // Создание скриншота
     bot.sendPhoto(chatId, await page.screenshot(), {}, {
       filename: 'schedule',
       contentType: 'image/png',
     });
+
     await browser.close();
   })();
 }
