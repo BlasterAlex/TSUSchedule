@@ -22,7 +22,7 @@ module.exports = function (param) {
     '<body>' +
     '  <table cellspacing="2" border="2" cellpadding="5" style="border-radius: 10px">' +
     '    <tr>' +
-    '      <th colspan="8" style="background: #fff7d9; height: 40px;">' + user.group + '</th>' +
+    '      <th colspan="8" style="background: #fff7d9; height: 40px; font-weight: bold">' + user.group + '</th>' +
     '    </tr>' +
     '    <tr id="table-header" style="height: 50px; font-weight: bold">' +
     '     <td style="background: #ebe2be; width:1px; white-space:nowrap; text-align: center;">Пара</td>' +
@@ -64,22 +64,26 @@ module.exports = function (param) {
       schedule[j][i].split('\n').forEach(function (el) {
         let line = el
 
+        // Практики и лабы
+        if (el.match(/\(Пр\)$/) || el.match(/\(Лаб\)$/))
+          line = '<span style="color: #2e58ff; font-weight: bold">' + line + '</span>';
+
         // Лекции
-        if (el.match(/\(Лек\)$/))
-          line = '<span style="color: #ff583b; font-weight: 800">' + line + '</span>';
+        else if (el.match(/\(Лек\)$/))
+          line = '<span style="color: #ff583b; font-weight: bold">' + line + '</span>';
 
         // Имя преподавателя
         else if (el.match(/^[А-Я]([а-я]+) [А-Я].[А-Я].$/))
-          line = '<span style="color: #2e58ff; font-weight: 800">' + line + '</span>';
+          line = '<span style=" font-weight: bold">' + line + '</span>';
 
         // Название подгруппы
         else if (el.match(/_\d$/))
-          line = '<span style="background: rgba(227, 201, 152, 0.85); font-weight: bold; line-height: 200%;' +
+          line = '<span style="background: rgba(227, 201, 152, 0.85); font-weight: 800; line-height: 200%;' +
             ' padding: 5px; border-radius: 10px;">' + line + '</span>';
 
         // Кабинет
         else if (el.match(/^([а-яА-Я0-9]+)-(\d+)$/))
-          line = '<span style="color: rgb(1%, 64%, 16%, 1); font-weight: 800">' + line + '</span>';
+          line = '<span style="color: rgb(1%, 64%, 16%, 1); font-weight: bold">' + line + '</span>';
 
         // Время - разрыв строки для разделения предметов
         else if (el.match(/\d\]$/))
