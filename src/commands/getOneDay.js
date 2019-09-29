@@ -4,7 +4,7 @@ module.exports = function (param) {
 
   let message = '*' + moment(param.today).locale('ru').format('dddd, DD MMMM').capitalize() + '*\n\n';
 
-  if (param.schedule.every(a => a === ''))
+  if (!param.schedule || param.schedule.every(a => a === ''))
     return param.bot.sendMessage(param.chatId, message +
       'Пустой день', {
       parse_mode: 'markdown'
