@@ -9,7 +9,7 @@ var config = JSON.parse(require('fs').readFileSync('config/config.json'));
 module.exports = function (param, callback) {
 
   var bot = param.bot;
-  var today = param.today
+  var today = param.today;
   var week = param.week;
   var user = param.user;
   var inst = param.inst;
@@ -67,7 +67,7 @@ module.exports = function (param, callback) {
         // Поиск расписания для группы
         if ($(this).text() === user.group) {
           write = true;
-        } else if (write && !$(this).find("td").text().match(/\d-я/)) {
+        } else if (write && !$(this).find('td').text().match(/\d-я/)) {
           if ($(this).text().indexOf('Пара') === -1)
             write = false;
         } else {
@@ -75,7 +75,7 @@ module.exports = function (param, callback) {
           let dayNum = 0;
 
           if (write) {
-            $(this).find("td").each(function () { // каждый столбец
+            $(this).find('td').each(function () { // каждый столбец
 
               let myhtml = $(this).html().replace(/<br\s?\/?>/gi, '\n'); // заменяет <br> на \n
               let text = he.decode(myhtml);
@@ -97,4 +97,4 @@ module.exports = function (param, callback) {
       callback(schedule);
     });
   });
-}
+};

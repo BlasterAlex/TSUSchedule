@@ -13,7 +13,7 @@ module.exports = function (param) {
     parse_mode: 'markdown'
   });
 
-  let html = require('../utils/tableGenerator')({
+  let html = require('../../utils/shedule/tableGenerator')({
     today: param.today,
     withoutDay: param.withoutDay,
     user: param.user,
@@ -68,4 +68,4 @@ module.exports = function (param) {
 
     await browser.close();
   })();
-}
+};

@@ -4,21 +4,22 @@ const moment = require('moment-timezone'); // for working with dates
 var config = JSON.parse(fs.readFileSync('config/config.json'));
 
 module.exports = function (bot) {
+
+  // Обработка сообщений
   bot.onText(/(.+)/, (msg) => {
     const chatId = msg.chat.id;
     var today = moment().tz(config.timeZone, true);
 
     // Разбор команд
-    var commands = require('./utils/comParser')(bot, chatId, msg.text);
+    var commands = require('./utils/parsing/text')(bot, chatId, msg.text);
     if (commands.exit) return;
 
     // Сдвиг текущего дня
     today.add(commands.fromNow, 'days');
 
     // Регистрация
-    let messages = msg.text.split(' ');
-    if (commands.registration !== false)
-      return require('./commands/registration')(bot, chatId, messages.slice(commands.registration + 1));
+    if (commands.registration)
+      return require('./commands/user/registration')(bot, msg);
 
     // Выполнение команд пользователя
     require('./repositories/UserRepository').findByChatId(chatId, function (user) {
@@ -41,7 +42,7 @@ module.exports = function (bot) {
           });
 
         // Получение расписания с сайта
-        require('./utils/scheduleGetter')({
+        require('./utils/shedule/scheduleGetter')({
           bot: bot,
           user: user[0],
           inst: inst[0],
@@ -59,7 +60,7 @@ module.exports = function (bot) {
 
           // Требуется расписание на один день
           if (commands.onWeek === false)
-            return require('./commands/getOneDay')({
+            return require('./commands/user/getOneDay')({
               bot: bot,
               chatId: chatId,
               today: today,
@@ -67,7 +68,7 @@ module.exports = function (bot) {
             });
 
           // Требуется расписание на неделю
-          require('./commands/getOneWeek')({
+          require('./commands/user/getOneWeek')({
             bot: bot,
             chatId: chatId,
             today: today,
@@ -79,4 +80,9 @@ module.exports = function (bot) {
       });
     });
   });
-}
+
+  // Обработка кнопок ответа
+  bot.on('callback_query', function (msg) {
+    require('./utils/parsing/callbackQuery')(bot, msg);
+  });
+};

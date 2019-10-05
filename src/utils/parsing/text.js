@@ -1,5 +1,7 @@
 const fs = require('fs'); // for working with files
 
+var configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
+
 module.exports = function (bot, chatId, msg) {
 
   var commands = {
@@ -25,14 +27,39 @@ module.exports = function (bot, chatId, msg) {
     case '/whoami':
     case 'кто я':
       commands.exit = true;
-      require('../commands/whoami')(bot, chatId);
+      require('../../commands/user/whoami')(bot, chatId);
       break;
+    case '/mygroup':
+    case 'моя группа':
+      commands.exit = true;
+      require('../../commands/user/mygroup')(bot, chatId);
+      break;
+  }
+
+  // Команды администратора
+  if (!commands.exit && chatId == configPrivate.ADMIN_CHAT_ID) {
+    switch (msg.toLowerCase()) {
+      case 'send mail':
+        commands.exit = true;
+        require('../../commands/admin/checkMsg')(bot, chatId);
+        break;
+      case 'update names':
+        commands.exit = true;
+        bot.sendMessage(chatId,
+          'Работа с обновлениями\n' +
+          'Не выключайте компьютер'
+        );
+        require('../../commands/admin/updateNames')(bot, (text) => {
+          bot.sendMessage(chatId, 'Список пользователей:\n' + text);
+        });
+        break;
+    }
   }
 
   // Разбор отдельных команд
   if (!commands.exit) {
     const messages = msg.split(' ');
-    messages.forEach(function (com, index) {
+    messages.forEach(function (com) {
       switch (com.toLowerCase()) {
         case '/yesterday':
         case 'вчера':
@@ -54,7 +81,14 @@ module.exports = function (bot, chatId, msg) {
         case '/reg':
         case 'рег':
         case 'регистрация':
-          commands.registration = index;
+        case '/group':
+        case 'группа':
+        case '/institute':
+        case 'инст':
+        case 'институт':
+        case '/course':
+        case 'курс':
+          commands.registration = true;
           break;
         case '/help':
         case 'помощь':
@@ -68,7 +102,7 @@ module.exports = function (bot, chatId, msg) {
         case 'список':
         case 'институты':
           commands.exit = true;
-          require('../commands/getInstList')(bot, chatId);
+          require('../../commands/user/getInstList')(bot, chatId);
           break;
         default:
           if (commands.registration === false) {
@@ -81,4 +115,4 @@ module.exports = function (bot, chatId, msg) {
   }
 
   return commands;
-}
+};

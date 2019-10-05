@@ -4,8 +4,7 @@
   "description": "'Telegram bot for getting lessons schedule'",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "mail": "node mailing/index.js"
+    "start": "node index.js"
   },
   "engines": {
     "node": "12.2.0"
@@ -23,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
+    "cron": "^1.7.2",
     "he": "^1.2.0",
     "moment-timezone": "^0.5.26",
     "mongoose": "^5.7.1",

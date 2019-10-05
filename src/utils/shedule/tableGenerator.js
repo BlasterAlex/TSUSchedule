@@ -1,5 +1,5 @@
 const cheerio = require('cheerio');
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 module.exports = function (param) {
 

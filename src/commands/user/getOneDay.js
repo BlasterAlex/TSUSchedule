@@ -14,4 +14,4 @@ module.exports = function (param) {
     if (param.schedule[i] !== '')
       message += '*' + (i + 1) + '-я*\n' + param.schedule[i].replace(/ \[/g, '\\[').replace(/_/g, '* ') + '\n\n';
   param.bot.sendMessage(param.chatId, message, { parse_mode: 'markdown' });
-}
+};

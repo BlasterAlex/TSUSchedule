@@ -17,3 +17,18 @@ module.exports.findByChatId = function (chatId, callback) {
     callback(user);
   });
 };
+
+module.exports.findByGroup = function (group, callback) {
+  User.find({ group: group }, function (err, list) {
+    if (err)
+      return console.error(err);
+
+    callback(list);
+  });
+};
+
+module.exports.updateName = function (chatId, fullName) {
+  User.findOneAndUpdate({ chatId: chatId }, { fullName: fullName }, { upsert: true }, function (err) {
+    if (err) console.error(err);
+  });
+};
