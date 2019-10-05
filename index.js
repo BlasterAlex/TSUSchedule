@@ -34,7 +34,7 @@ mongoose.connect(process.env.MONGODB_URI || configPrivate.MONGODB_URI, {
   process.exit(-1);
 });
 
-// Начать строку с большой буквы
+// Форматирование строки как в предложении
 String.prototype.capitalize = function () { return this.charAt(0).toUpperCase() + this.slice(1); };
 
 // Работа с командами пользователя

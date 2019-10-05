@@ -1,17 +1,17 @@
 const fs = require('fs'); // for working with files
-
-var configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
+const adminId = process.env.ADMIN_CHAT_ID || JSON.parse(fs.readFileSync('config/private.json')).ADMIN_CHAT_ID;
 
 module.exports = function (bot, chatId, msg) {
 
+  var message = msg.text;
+  var lowerMsg = message.toLowerCase();
   var commands = {
-    registration: false,
     exit: false,
     onWeek: false
   };
 
   // Разбор фраз 
-  switch (msg.toLowerCase()) {
+  switch (lowerMsg) {
     case '/lastweek':
     case 'пред неделя':
       commands.onWeek = true;
@@ -28,21 +28,36 @@ module.exports = function (bot, chatId, msg) {
     case 'кто я':
       commands.exit = true;
       require('../../commands/user/whoami')(bot, chatId);
-      break;
+      return commands;
     case '/mygroup':
     case 'моя группа':
       commands.exit = true;
       require('../../commands/user/mygroup')(bot, chatId);
-      break;
+      return commands;
   }
 
-  // Команды администратора
-  if (!commands.exit && chatId == configPrivate.ADMIN_CHAT_ID) {
-    switch (msg.toLowerCase()) {
+  // Разбор команд с параметрами
+  if (new RegExp(['/reg', 'рег', 'регистрация',
+    '/group', 'группа', '/institute',
+    'инст', 'институт', '/course', 'курс'
+  ].join('|')).test(lowerMsg)) {
+    commands.exit = true;
+    require('../../commands/user/registration')(bot, msg);
+    return commands;
+  }
+  else if (new RegExp(['/keyboard', 'клавиатура', 'клав'].join('|')).test(lowerMsg)) {
+    commands.exit = true;
+    require('../../commands/user/keyboard')(bot, msg);
+    return commands;
+  }
+
+  // Разбор команд администратора
+  if (chatId == adminId) {
+    switch (lowerMsg) {
       case 'send mail':
         commands.exit = true;
         require('../../commands/admin/checkMsg')(bot, chatId);
-        break;
+        return commands;
       case 'update names':
         commands.exit = true;
         bot.sendMessage(chatId,
@@ -52,67 +67,51 @@ module.exports = function (bot, chatId, msg) {
         require('../../commands/admin/updateNames')(bot, (text) => {
           bot.sendMessage(chatId, 'Список пользователей:\n' + text);
         });
-        break;
+        return commands;
     }
   }
 
   // Разбор отдельных команд
-  if (!commands.exit) {
-    const messages = msg.split(' ');
-    messages.forEach(function (com) {
-      switch (com.toLowerCase()) {
-        case '/yesterday':
-        case 'вчера':
-          commands.fromNow = -1;
-          break;
-        case '/today':
-        case 'сегодня':
-          commands.fromNow = 0;
-          break;
-        case '/tomorrow':
-        case 'завтра':
-          commands.fromNow = 1;
-          break;
-        case '/week':
-        case 'неделя':
-          commands.onWeek = true;
-          commands.fromNow = 0;
-          break;
-        case '/reg':
-        case 'рег':
-        case 'регистрация':
-        case '/group':
-        case 'группа':
-        case '/institute':
-        case 'инст':
-        case 'институт':
-        case '/course':
-        case 'курс':
-          commands.registration = true;
-          break;
-        case '/help':
-        case 'помощь':
-        case 'помогити':
-          commands.exit = true;
-          bot.sendMessage(chatId, fs.readFileSync('data/messages/help.txt'), {
-            parse_mode: 'markdown'
-          });
-          break;
-        case '/list':
-        case 'список':
-        case 'институты':
-          commands.exit = true;
-          require('../../commands/user/getInstList')(bot, chatId);
-          break;
-        default:
-          if (commands.registration === false) {
-            commands.exit = true;
-            bot.sendMessage(chatId, 'Я не знаю, что такое _' + com + '_', { parse_mode: 'markdown' });
-          }
-          break;
-      }
-    });
-  }
+  const words = message.split(' ');
+  words.forEach(function (com) {
+    switch (com.toLowerCase()) {
+      case '/yesterday':
+      case 'вчера':
+        commands.fromNow = -1;
+        break;
+      case '/today':
+      case 'сегодня':
+        commands.fromNow = 0;
+        break;
+      case '/tomorrow':
+      case 'завтра':
+        commands.fromNow = 1;
+        break;
+      case '/week':
+      case 'неделя':
+        commands.onWeek = true;
+        commands.fromNow = 0;
+        break;
+      case '/help':
+      case 'помощь':
+      case 'помогити':
+        commands.exit = true;
+        bot.sendMessage(chatId, fs.readFileSync('data/messages/help.txt'), {
+          parse_mode: 'markdown'
+        });
+        break;
+      case '/list':
+      case 'список':
+      case 'институты':
+        commands.exit = true;
+        require('../../commands/user/getInstList')(bot, chatId);
+        break;
+      default:
+        commands.exit = true;
+        bot.sendMessage(chatId, 'Я не знаю, что такое _' + com + '_', { parse_mode: 'markdown' });
+        break;
+    }
+  });
 
   return commands;
 };

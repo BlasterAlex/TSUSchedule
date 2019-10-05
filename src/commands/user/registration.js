@@ -22,17 +22,19 @@ module.exports = function (bot, msg) {
   switch (command.toLowerCase()) {
     case '/group':
     case 'группа':
+      if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
       user.group = data[0];
       break;
     case '/institute':
     case 'инст':
     case 'институт':
+      if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
       user.institute = data[0];
       break;
     case '/course':
     case 'курс':
+      if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
       user.course = parseInt(data[0]);
-      console.log(data[0]);
       break;
     case '/reg':
     case 'рег':

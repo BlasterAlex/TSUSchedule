@@ -62,7 +62,7 @@ module.exports = function (param) {
       // Разбор расписания на день
       let text = '';
       schedule[j][i].split('\n').forEach(function (el) {
-        let line = el
+        let line = el;
 
         // Практики и лабы
         if (el.match(/\(Пр\)$/) || el.match(/\(Лаб\)$/))
@@ -98,7 +98,9 @@ module.exports = function (param) {
         '</td>');
     }
 
-    $('body table tbody #' + lessoId).append('<td style="background: #f5f2e6; text-align: center;">' + (i + 1) + '-я</td>')
+    $('body table tbody #' + lessoId).append(
+      '<td style="background: #f5f2e6; text-align: center;">' + (i + 1) + '-я</td>'
+    );
   }
 
   // require('fs').writeFileSync('test.html', $.html());

@@ -27,6 +27,7 @@
     "moment-timezone": "^0.5.26",
     "mongoose": "^5.7.1",
     "node-telegram-bot-api": "^0.30.0",
+    "node-telegram-keyboard-wrapper": "^2.0.1",
     "puppeteer": "^1.20.0",
     "xlsx": "^0.15.1"
   }
