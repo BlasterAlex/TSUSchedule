@@ -31,7 +31,11 @@ module.exports = function (bot, msg) {
       require('../../repositories/UserRepository').getAll(function (list) {
         console.log('\nСписок получателей:');
         list.forEach(function (user) {
-          bot.sendMessage(user.chatId, fs.readFileSync('data/messages/mailing.txt'), { parse_mode: 'markdown' });
+          // bot.sendPhoto(msg.from.id, 'photo.jpg', {
+          //   caption: require('fs').readFileSync('data/messages/mailing.txt'),
+          //   parse_mode: 'markdown'
+          // });
+          bot.sendMessage(user.chatId, require('fs').readFileSync('data/messages/mailing.txt'), { parse_mode: 'markdown' });
           console.log(user.chatId);
         });
         bot.editMessageReplyMarkup({ inline_keyboard: [] }, {

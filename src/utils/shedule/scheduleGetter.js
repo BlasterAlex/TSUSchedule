@@ -57,6 +57,16 @@ module.exports = function (param, callback) {
       else
         ws = wb.Sheets[wb.SheetNames[1]];
 
+      // Выход с сообщением об ошибке
+      if (!ws)
+        return bot.sendMessage(chatId, 'Данные получены. Не найдено расписание для вашего курса\n\n' +
+          '*Институт*: ' + user.institute +
+          '\n*Курс*: ' + user.course +
+          '\n*Группа*: ' + user.group +
+          '\n*День*: ' + moment(today).locale('ru').format('dd, DD MMM') + ', неделя ' + week, {
+          parse_mode: 'markdown'
+        });
+
       $ = cheerio.load(XLSX.utils.sheet_to_html(ws));
 
       var write = false; // флаг для записи нужного расписания
