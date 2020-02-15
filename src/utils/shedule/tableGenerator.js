@@ -62,6 +62,9 @@ module.exports = function (param) {
       // Разбор расписания на день
       let text = '';
       schedule[j][i].split('\n').forEach(function (el) {
+
+        // Считывание очередной строки ячейки таблицы
+        el = el.trim();
         let line = el;
 
         // Практики и лабы
