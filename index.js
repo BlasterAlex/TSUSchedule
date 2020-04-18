@@ -5,6 +5,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs'); // for working with files
 const http = require('http'); // for using HTTP server 
 const mongoose = require('mongoose'); // for working with db
+
 var configPrivate;
 
 // Настройки подключения бота
@@ -17,7 +18,13 @@ if (process.env.TELEGRAM_TOKEN) {
   configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
   bot = new TelegramBot(configPrivate.TELEGRAM_TOKEN, {
     polling: true,
-    request: { proxy: 'http://localhost:8118' }
+    request: {
+      agentClass: require('socks5-https-client/lib/Agent'),
+      agentOptions: {
+        socksHost: 'localhost',
+        socksPort: '9050'
+      }
+    }
   });
 }
 

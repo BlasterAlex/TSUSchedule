@@ -1,5 +1,5 @@
-const cheerio = require('cheerio');
-const moment = require('moment-timezone');
+const cheerio = require('cheerio'); // for html generating
+const moment = require('moment-timezone'); // for working with dates
 
 module.exports = function (param) {
 
@@ -106,6 +106,5 @@ module.exports = function (param) {
     );
   }
 
-  // require('fs').writeFileSync('test.html', $.html());
   return $.html();
 };

@@ -4,7 +4,9 @@
   "description": "'Telegram bot for getting lessons schedule'",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "lint": "eslint '**/*.js'",
+    "lint:fix": "eslint '**/*.js' --fix"
   },
   "engines": {
     "node": "12.2.0"
@@ -23,12 +25,15 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
     "cron": "^1.7.2",
+    "eslint": "^6.8.0",
     "he": "^1.2.0",
     "moment-timezone": "^0.5.26",
     "mongoose": "^5.7.1",
     "node-telegram-bot-api": "^0.30.0",
     "node-telegram-keyboard-wrapper": "^2.0.1",
+    "pattern-emitter": "^1.0.0",
     "puppeteer": "^1.20.0",
+    "socks5-https-client": "^1.2.1",
     "xlsx": "^0.15.1"
   }
 }

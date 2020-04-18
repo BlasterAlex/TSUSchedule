@@ -13,19 +13,16 @@ module.exports = function (bot) {
     var commands = require('./utils/parsing/text')(bot, chatId, msg);
     if (commands.exit) return;
 
+    // Запуск основного алгоритма
     run(bot, chatId, commands);
+
   });
 
   // Обработка кнопок ответа
   bot.on('callback_query', (msg) => {
-    const chatId = msg.from.id;
-
-    // Разбор команд
-    var commands = require('./utils/parsing/callbackQuery')(bot, msg);
-    if (commands.exit) return;
-
-    run(bot, chatId, commands);
+    require('./utils/parsing/callbackQuery')(bot, msg);
   });
+
 };
 
 // Запуск основного алгоритма
@@ -54,6 +51,16 @@ function run(bot, chatId, commands) {
           fs.readFileSync('data/messages/instituteList.txt'), {
           parse_mode: 'markdown'
         });
+
+      if (config.DE_mode == 'active') {
+        require('./utils/shedule/scheduleGetterDE')({
+          bot: bot,
+          user: user[0],
+          group: user[0].group,
+          today: today,
+        });
+        return bot.sendMessage(chatId, 'Дистанционка в работе', { parse_mode: 'markdown' });
+      }
 
       // Получение расписания с сайта
       require('./utils/shedule/scheduleGetter')({

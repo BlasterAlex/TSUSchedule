@@ -1,5 +1,9 @@
 const fs = require('fs'); // for working with files
+const moment = require('moment-timezone'); // for working with dates
+const Calendar = require('../calendar'); // for using inline-calendar in chat
+
 const adminId = process.env.ADMIN_CHAT_ID || JSON.parse(fs.readFileSync('config/private.json')).ADMIN_CHAT_ID;
+const config = JSON.parse(fs.readFileSync('config/config.json'));
 
 module.exports = function (bot, chatId, msg) {
 
@@ -34,6 +38,18 @@ module.exports = function (bot, chatId, msg) {
       commands.exit = true;
       require('../../commands/user/mygroup')(bot, chatId);
       return commands;
+    case '/selectday':
+    case 'выбрать день': {
+      commands.exit = true;
+      const calendar = new Calendar(bot, chatId);
+      calendar.getDate((date) => {
+        bot.sendMessage(chatId, date);
+        const now = moment().tz(config.timeZone, true);
+        const nw = moment(date, 'DD/MM/YYYY').tz(config.timeZone, true);
+        commands.fromNow = nw.diff(now, 'days');
+      });
+      return commands;
+    }
   }
 
   // Разбор команд с параметрами

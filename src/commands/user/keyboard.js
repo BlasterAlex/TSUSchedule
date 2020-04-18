@@ -1,24 +1,35 @@
-// import { ReplyKeyboard } from 'node-telegram-keyboard-wrapper';
+const config = JSON.parse(require('fs').readFileSync('config/config.json'));
 
 module.exports = function (bot, msg) {
   let chatId = msg.chat.id;
   let words = msg.text.split(' ');
 
   if (words.length < 2) {
-    return bot.sendMessage(chatId, require('fs')
-      .readFileSync('data/messages/keyboard.txt'), { parse_mode: 'markdown' });
+    return bot.sendMessage(chatId, fs.readFileSync('data/messages/keyboard.txt'), { parse_mode: 'markdown' });
   }
   switch (words[1]) {
     case 'on': { // создать клавиатуру 
 
-      let firstLoad = [
-        { text: 'Сегодня', callback_data: 'keyboard today' },
-        { text: 'Завтра', callback_data: 'keyboard tomorrow' },
-      ];
-      let secondLoad = [
-        { text: 'Неделя', callback_data: 'keyboard week' },
-        { text: 'След неделя', callback_data: 'keyboard next week' },
-      ];
+      var firstLoad, secondLoad;
+
+      if (config.DE_mode === 'active') {
+        firstLoad = [
+          { text: 'Сегодня', callback_data: '/today' },
+          { text: 'Завтра', callback_data: '/tomorrow' },
+        ];
+        secondLoad = [
+          { text: 'Выбрать день', callback_data: '/selectday' },
+        ];
+      } else {
+        firstLoad = [
+          { text: 'Сегодня', callback_data: '/today' },
+          { text: 'Завтра', callback_data: '/tomorrow' },
+        ];
+        secondLoad = [
+          { text: 'Неделя', callback_data: '/week' },
+          { text: 'След неделя', callback_data: '/nextweek' },
+        ];
+      }
 
       bot.sendMessage(
         msg.chat.id,

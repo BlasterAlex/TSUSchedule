@@ -1,5 +1,6 @@
 node_modules
 *-lock.json
+*-debug.log
 
 config/private.json
 log/cronjobs
