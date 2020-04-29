@@ -164,14 +164,14 @@ module.exports = function (param, callback) {
                     if (waiting)
                       resolve();
                     else
-                      setTimeout(interval, 1000);
+                      setTimeout(interval, 2000);
                   } catch (err) {
                     return bot.sendMessage(chatId,
                       'Ошибка получения расписания с Росдистант\nПопробуйте еще раз',
                       { parse_mode: 'markdown' });
                   }
                 };
-                setTimeout(interval, 1000);
+                setTimeout(interval, 2000);
               });
 
               // Проверка статуса авторизации
