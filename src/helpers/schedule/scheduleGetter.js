@@ -164,87 +164,80 @@ module.exports = function (param, callback) {
                     if (waiting)
                       resolve();
                     else
-                      setTimeout(interval, 2000);
+                      setTimeout(interval, 1000);
                   } catch (err) {
                     return bot.sendMessage(chatId,
-                      'Ошибка получения расписания с Росдистант:\n' + err.message,
+                      'Ошибка получения расписания с Росдистант\nПопробуйте еще раз',
                       { parse_mode: 'markdown' });
                   }
                 };
-                setTimeout(interval, 2000);
+                setTimeout(interval, 1000);
               });
 
-              return bot.sendPhoto(chatId, await page.screenshot(), {}, {
-                filename: 'schedule',
-                contentType: 'image/png',
+              // Проверка статуса авторизации
+              let status = await page.evaluate(() => {
+                let error = document.querySelector('.loginerrors .error');
+                if (error && error.innerText === 'Неверный логин или пароль, попробуйте заново.')
+                  return 'wrong user data';
+                else return 'ok';
               });
 
-              // // Проверка статуса авторизации
-              // let status = await page.evaluate(() => {
-              //   let error = document.querySelector('.loginerrors .error');
-              //   if (error && error.innerText === 'Неверный логин или пароль, попробуйте заново.')
-              //     return 'wrong user data';
-              //   else return 'ok';
-              // });
+              // Ошибка авторизации
+              switch (status) {
+                case 'wrong user data':
+                  return bot.sendMessage(chatId,
+                    'Неправильные данные для входа:\n' +
+                    'Логин:  *' + user.login + '*\n' +
+                    'Пароль: ' + '/showpassword',
+                    { parse_mode: 'markdown' });
+              }
 
-              // // Ошибка авторизации
-              // switch (status) {
-              //   case 'wrong user data':
-              //     return bot.sendMessage(chatId,
-              //       'Неправильные данные для входа:\n' +
-              //       'Логин:  *' + user.login + '*\n' +
-              //       'Пароль: ' + '/showpassword',
-              //       { parse_mode: 'markdown' });
-              // }
+              await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.2.1.min.js' });
 
-              // await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.2.1.min.js' });
+              // Разбор расписания
+              let schedule = await page.evaluate(function (pairNumbers) {
+                const $ = window.$;
+                var array = [];
 
-              // // Разбор расписания
-              // let schedule = await page.evaluate(function (pairNumbers) {
-              //   const $ = window.$;
-              //   var array = [];
+                $('.mycourses .coursebox').each(function () {
+                  var mycourses = $(this).closest('.mycourses');
+                  var content = mycourses.find('div:nth-child(2)');
+                  var datetime = mycourses.find('div:nth-child(3)');
 
-              //   $('.mycourses .coursebox').each(function () {
-              //     var mycourses = $(this).closest('.mycourses');
-              //     var content = mycourses.find('div:nth-child(2)');
-              //     var datetime = mycourses.find('div:nth-child(3)');
+                  if (content.length && datetime.length) {
+                    var dateStr = datetime.text().split(/\s+/);
+                    var time = dateStr[0];
+                    var date = dateStr[1];
 
-              //     if (content.length && datetime.length) {
-              //       var dateStr = datetime.text().split(/\s+/);
-              //       var time = dateStr[0];
-              //       var date = dateStr[1];
+                    var teacher = content.html().match(/<b>Преподаватель:<\/b>\s*([^<]+)<br>/);
+                    var link = content.html().match(/<a href="(.*)">/);
 
-              //       var teacher = content.html().match(/<b>Преподаватель:<\/b>\s*([^<]+)<br>/);
-              //       var link = content.html().match(/<a href="(.*)">/);
+                    var course = {
+                      'pairNum': pairNumbers.indexOf(time) + 1,
+                      'time': time,
+                      'coursename': $(this).find('.coursename a').text(),
+                      'teacher': teacher ? teacher[1] : 'undefined',
+                      'link': link ? link[1] : 'undefined',
+                    };
 
-              //       var course = {
-              //         'pairNum': pairNumbers.indexOf(time) + 1,
-              //         'time': time,
-              //         'coursename': $(this).find('.coursename a').text(),
-              //         'teacher': teacher ? teacher[1] : 'undefined',
-              //         'link': link ? link[1] : 'undefined',
-              //       };
+                    var found = false;
+                    for (var i = 0; i < array.length; i++) {
+                      if (array[i].date == date) {
+                        found = true;
+                        array[i].courses.push(course);
+                        break;
+                      }
+                    }
+                    if (!found)
+                      array.push({ 'date': date, 'courses': [course] });
+                  }
+                });
 
-              //       var found = false;
-              //       for (var i = 0; i < array.length; i++) {
-              //         if (array[i].date == date) {
-              //           found = true;
-              //           array[i].courses.push(course);
-              //           break;
-              //         }
-              //       }
-              //       if (!found)
-              //         array.push({ 'date': date, 'courses': [course] });
-              //     }
-              //   });
+                return array;
+              }, pairNumbers);
 
-              //   return array;
-              // }, pairNumbers);
-
-              // console.log(schedule);
-
-              // // Работа с полученным расписанием
-              // callback(schedule);
+              // Работа с полученным расписанием
+              callback(schedule);
 
             } catch (err) {
               return bot.sendMessage(chatId,
