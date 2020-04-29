@@ -4,6 +4,5 @@
   "locale": "ru",
   "academYBegin": "01/09/2019",
   "scheduleURL": "https://www.tltsu.ru/upravlenie/educational-methodical-management/schedule/schedule-training-sessions-students-full-time-tuition/",
-  "scheduleURL_DE": "http://edu.tltsu.ru:8888/birt-viewer-4.5/run?__report=vks_sched.rptdesign&__format=html",
   "rosdistantURL": "https://edu.rosdistant.ru/"
 }

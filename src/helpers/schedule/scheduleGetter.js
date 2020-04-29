@@ -153,30 +153,30 @@ module.exports = function (param, callback) {
                 document.querySelector('#loginbtn').click();
               }, user.login, user.password);
 
+              // Ожидание завершения авторизации
+              await new Promise((resolve) => {
+                const interval = async function () {
+                  try {
+                    let waiting = await page.evaluate(() => {
+                      return !document.querySelector('.loginform') || document.querySelector('.loginerrors');
+                    });
+                    if (waiting)
+                      resolve();
+                    else
+                      setTimeout(interval, 2000);
+                  } catch (err) {
+                    return bot.sendMessage(chatId,
+                      'Ошибка получения расписания с Росдистант:\n' + err.message,
+                      { parse_mode: 'markdown' });
+                  }
+                };
+                setTimeout(interval, 2000);
+              });
+
               return bot.sendPhoto(chatId, await page.screenshot(), {}, {
                 filename: 'schedule',
                 contentType: 'image/png',
               });
-
-              // Ожидание завершения авторизации
-              // await new Promise((resolve) => {
-              //   const interval = async function () {
-              //     try {
-              //       let waiting = await page.evaluate(() => {
-              //         return !document.querySelector('.loginform') || document.querySelector('.loginerrors');
-              //       });
-              //       if (waiting)
-              //         resolve();
-              //       else
-              //         setTimeout(interval, 2000);
-              //     } catch (err) {
-              //       return bot.sendMessage(chatId,
-              //         'Ошибка получения расписания с Росдистант:\n' + err.message,
-              //         { parse_mode: 'markdown' });
-              //     }
-              //   };
-              //   setTimeout(interval, 2000);
-              // });
 
               // // Проверка статуса авторизации
               // let status = await page.evaluate(() => {
