@@ -158,7 +158,8 @@ module.exports = function (param, callback) {
                 const interval = async function () {
                   try {
                     let waiting = await page.evaluate(() => {
-                      return !document.querySelector('.loginform') || document.querySelector('.loginerrors');
+                      return (!document.querySelector('.loginform') && document.querySelector('#page'))
+                        || document.querySelector('.loginerrors');
                     });
                     if (waiting)
                       resolve();
