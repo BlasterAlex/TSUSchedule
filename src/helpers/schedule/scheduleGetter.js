@@ -125,6 +125,7 @@ module.exports = function (param, callback) {
         (async () => {
 
           const browser = await puppeteer.launch({ headless: true });
+
           try {
 
             const page = await browser.newPage();
@@ -140,19 +141,25 @@ module.exports = function (param, callback) {
             }, user.login, user.password);
 
             // Ожидание завершения авторизации
-            await new Promise((resolve) => {
-              const interval = async function () {
-                let waiting = await page.evaluate(() => {
-                  return !document.querySelector('.loginform') || document.querySelector('.loginerrors');
-                });
-                if (waiting) {
-                  resolve();
-                } else {
-                  setTimeout(interval, 2000);
-                }
-              };
-              setTimeout(interval, 2000);
-            });
+            try {
+              await new Promise((resolve) => {
+                const interval = async function () {
+                  let waiting = await page.evaluate(() => {
+                    return !document.querySelector('.loginform') || document.querySelector('.loginerrors');
+                  });
+                  if (waiting) {
+                    resolve();
+                  } else {
+                    setTimeout(interval, 2000);
+                  }
+                };
+                setTimeout(interval, 2000);
+              });
+            } catch (err) {
+              return bot.sendMessage(chatId,
+                err.message,
+                { parse_mode: 'markdown' });
+            }
 
             // Проверка статуса авторизации
             let status = await page.evaluate(() => {
@@ -220,7 +227,6 @@ module.exports = function (param, callback) {
             callback(schedule);
 
           } catch (err) {
-            console.error(err.message);
             return bot.sendMessage(chatId,
               err.message,
               { parse_mode: 'markdown' });
@@ -228,6 +234,7 @@ module.exports = function (param, callback) {
             bot.deleteMessage(chatId, messageId);
             await browser.close();
           }
+
         })();
 
       });
