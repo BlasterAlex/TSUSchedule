@@ -43,8 +43,8 @@ module.exports = function (bot, chatId, msg) {
       commands.exit = true;
       const calendar = new Calendar(bot, chatId);
       calendar.getDate((date) => {
-        const now = moment().tz(config.timeZone, true);
-        const nw = moment(date, 'DD/MM/YYYY').tz(config.timeZone, true);
+        const now = moment().tz(config.timeZone, true).set({ 'hour': 0, 'minute': 0, 'second': 0 });
+        const nw = moment(date, 'DD/MM/YYYY').tz(config.timeZone, true).set({ 'hour': 0, 'minute': 0, 'second': 0 });
         commands.fromNow = moment.duration(nw.diff(now)).asDays();
         require('../../bot').run(bot, chatId, commands);
       });

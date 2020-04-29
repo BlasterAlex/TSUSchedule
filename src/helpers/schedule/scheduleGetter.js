@@ -129,16 +129,18 @@ module.exports = function (param, callback) {
             // Запуск браузера
             const browser = await puppeteer.launch({
               headless: true,
+              defaultViewport: null,
               args: [
                 '--no-sandbox',
-                '--disable-setuid-sandbox'
+                '--disable-setuid-sandbox',
+                '--window-size=1550,2000',
+                '--start-maximized'
               ]
             });
 
             try {
 
               const page = await browser.newPage();
-              await page.setViewport({ width: 1280, height: 926 });
               await page.goto(URL);
 
               // Авторизация пользователя в системе
@@ -225,6 +227,8 @@ module.exports = function (param, callback) {
 
                 return array;
               }, pairNumbers);
+
+              console.log(schedule);
 
               // Работа с полученным расписанием
               callback(schedule);
