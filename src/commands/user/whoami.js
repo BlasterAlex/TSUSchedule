@@ -12,7 +12,9 @@ module.exports = function (bot, chatId) {
       '*' + user[0].fullName + '*' +
       '\n*Институт*: ' + user[0].institute +
       '\n*Курс*: ' + user[0].course +
-      '\n*Группа*: ' + user[0].group,
+      '\n*Группа*: ' + user[0].group +
+      (user[0].login ? ('\n\nРосдистант:\n*Логин*: ' + user[0].login) : '') +
+      (user[0].password ? ('\n*Пароль*: ' + '/showpassword') : ''),
       { parse_mode: 'markdown' });
   });
 };

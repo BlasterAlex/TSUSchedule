@@ -43,10 +43,10 @@ module.exports = function (bot, chatId, msg) {
       commands.exit = true;
       const calendar = new Calendar(bot, chatId);
       calendar.getDate((date) => {
-        bot.sendMessage(chatId, date);
         const now = moment().tz(config.timeZone, true);
         const nw = moment(date, 'DD/MM/YYYY').tz(config.timeZone, true);
-        commands.fromNow = nw.diff(now, 'days');
+        commands.fromNow = moment.duration(nw.diff(now)).asDays();
+        require('../../bot').run(bot, chatId, commands);
       });
       return commands;
     }
@@ -55,7 +55,9 @@ module.exports = function (bot, chatId, msg) {
   // Разбор команд с параметрами
   if (new RegExp(['/reg', 'рег', 'регистрация',
     '/group', 'группа', '/institute',
-    'инст', 'институт', '/course', 'курс'
+    'инст', 'институт', '/course', 'курс',
+    '/rosdistant', 'росдистант',
+    '/login', 'логин', '/password', 'пароль', '/showpassword'
   ].join('|')).test(lowerMsg)) {
     commands.exit = true;
     require('../../commands/user/registration')(bot, msg);

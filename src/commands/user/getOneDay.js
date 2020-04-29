@@ -1,17 +1,40 @@
-const moment = require('moment-timezone'); // for working with dates
+var config = JSON.parse(require('fs').readFileSync('config/config.json'));
 
 module.exports = function (param) {
 
-  let message = '*' + moment(param.today).locale('ru').format('dddd, DD MMMM').capitalize() + '*\n\n';
+  let message = '*' + param.today.locale('ru').format('dddd, DD MMMM').capitalize() + '*\n\n';
 
-  if (!param.schedule || param.schedule.every(a => a === ''))
-    return param.bot.sendMessage(param.chatId, message +
-      'Пустой день', {
-      parse_mode: 'markdown'
+  if (!config.DE_mode) {
+
+    if (!param.schedule || param.schedule.every(a => a === ''))
+      return param.bot.sendMessage(param.chatId, message +
+        'Пустой день', {
+        parse_mode: 'markdown'
+      });
+
+    for (var i = 0; i < param.schedule.length; i++)
+      if (param.schedule[i] !== '')
+        message += '*' + (i + 1) + '-я*\n' + param.schedule[i].replace(/ \[/g, '\\[').replace(/_/g, '* ') + '\n\n';
+    param.bot.sendMessage(param.chatId, message, { parse_mode: 'markdown' });
+
+  } else {
+
+    if (!param.schedule.length)
+      return param.bot.sendMessage(param.chatId, message +
+        'Пустой день', {
+        parse_mode: 'markdown'
+      });
+
+    let courses = param.schedule[0].courses;
+    courses.forEach(function (course) {
+      message += '*' + course.pairNum + '-я ' + course.time + '*\n';
+      message += course.coursename + '\n';
+      message += '_' + course.teacher + '_\n';
+      message += course.link + '\n';
+      message += '\n';
     });
 
-  for (var i = 0; i < param.schedule.length; i++)
-    if (param.schedule[i] !== '')
-      message += '*' + (i + 1) + '-я*\n' + param.schedule[i].replace(/ \[/g, '\\[').replace(/_/g, '* ') + '\n\n';
-  param.bot.sendMessage(param.chatId, message, { parse_mode: 'markdown' });
+    return param.bot.sendMessage(param.chatId, message, { parse_mode: 'markdown' });
+  }
+
 };

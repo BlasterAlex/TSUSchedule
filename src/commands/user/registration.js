@@ -1,5 +1,6 @@
 const fs = require('fs'); // for working with files
-var User = require('../../models/User');
+
+const auth = require('../../helpers/auth');
 
 module.exports = function (bot, msg) {
 
@@ -45,34 +46,29 @@ module.exports = function (bot, msg) {
       user.course = parseInt(data[1]);
       user.group = data[2];
       break;
+    case '/rosdistant':
+    case 'росдистант':
+      if (data.length < 2)
+        return bot.sendMessage(chatId, fs.readFileSync('data/messages/rosdistant.txt'), { parse_mode: 'markdown' });
+      user.login = data[0];
+      user.password = data[1];
+      break;
+    case '/login':
+    case 'логин':
+      if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
+      user.login = data[0];
+      break;
+    case '/password':
+    case 'пароль':
+      if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
+      user.password = data[0];
+      break;
+    case '/showpassword':
+      return auth.showPassword(bot, chatId);
     default:
       return bot.sendMessage(chatId, 'Я не знаю, что такое _' + command + '_', { parse_mode: 'markdown' });
   }
 
-  // Проверка института
-  require('../../repositories/InstituteRepository').findByName(user.institute, function (inst) {
-
-    if (user.institute && inst.length === 0)
-      return bot.sendMessage(chatId, 'Не могу найти институт *"' + user.institute + '"*.\n' +
-        fs.readFileSync('data/messages/instituteList.txt'), {
-        parse_mode: 'markdown'
-      });
-
-    // Проверка номера курса
-    if (user.course && !(Number.isInteger(user.course) && user.course > 0))
-      return bot.sendMessage(chatId, 'Неправильно введен номер курса, перепроверьте вводимые данные',
-        { parse_mode: 'markdown' });
-
-    // Добавление нового или изменение старого пользователя
-    User.findOneAndUpdate({ chatId: chatId }, user, { upsert: true }, function (err, res) {
-      if (err) return console.error(err);
-
-      if (res)
-        bot.sendMessage(chatId, 'Данные успешно обновлены');
-      else
-        bot.sendMessage(chatId, 'Данные успешно добавлены');
-
-      require('./whoami')(bot, chatId);
-    });
-  });
+  // Регистрация пользователя
+  auth.registrate(bot, chatId, user);
 };

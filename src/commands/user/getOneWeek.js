@@ -4,21 +4,22 @@ const puppeteer = require('puppeteer'); // for screenshotting html table
 module.exports = function (param) {
 
   var bot = param.bot;
+  var today = param.today;
   var chatId = param.chatId;
   var schedule = param.schedule;
 
-  bot.sendMessage(chatId, 'Формирую расписание на \n_'
-    + moment(param.today).day(1).locale('ru').format('DD MMMM') + ' — ' +
-    moment(param.today).day(schedule.length).locale('ru').format('DD MMMM') + '_', {
+  bot.sendMessage(chatId, 'Формирую расписание на \n' +
+    '_' + moment(today).day(1).format('DD MMMM') + ' — ' + moment(today).day(6).format('DD MMMM') + '_', {
     parse_mode: 'markdown'
   });
 
-  let html = require('../../utils/shedule/tableGenerator')({
-    today: param.today,
+  let html = require('../../helpers/schedule/tableGenerator')({
+    today: today,
     withoutDay: param.withoutDay,
     user: param.user,
     schedule: schedule
   });
+
   (async () => {
 
     // Запуск браузера
@@ -33,39 +34,46 @@ module.exports = function (param) {
       ]
     });
 
-    // Создание новой вкладки
-    const page = await browser.newPage();
-    await page.setViewport({
-      width: 0,
-      height: 0,
-    });
-    await page.setContent(html);
-    await page.evaluateHandle('document.fonts.ready');
-    await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.2.1.min.js' });
+    try {
+      // Создание новой вкладки
+      const page = await browser.newPage();
+      await page.setViewport({
+        width: 0,
+        height: 0,
+      });
+      await page.setContent(html);
+      await page.evaluateHandle('document.fonts.ready');
+      await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.2.1.min.js' });
 
-    // Определение размеров таблицы
-    let sizes = await page.evaluate(() => {
-      const $ = window.$;
-      return [$('body table').width(), $('body table').height()];
-    });
+      // Определение размеров таблицы
+      let sizes = await page.evaluate(() => {
+        const $ = window.$;
+        return [$('body table').width(), $('body table').height()];
+      });
 
-    console.log('Table size: ', sizes);
-    const width = sizes[0] + 25;
-    const height = sizes[1] + 25;
+      const width = sizes[0] + 25;
+      const height = sizes[1] + 25;
 
-    // Установка поля зрения
-    await page.setViewport({
-      width: width,
-      height: height,
-      deviceScaleFactor: 1,
-    });
+      // Установка поля зрения
+      await page.setViewport({
+        width: width,
+        height: height,
+        deviceScaleFactor: 1,
+      });
 
-    // Создание скриншота
-    bot.sendPhoto(chatId, await page.screenshot(), {}, {
-      filename: 'schedule',
-      contentType: 'image/png',
-    });
+      // Создание скриншота
+      bot.sendPhoto(chatId, await page.screenshot(), {}, {
+        filename: 'schedule',
+        contentType: 'image/png',
+      });
 
-    await browser.close();
+    } catch (err) {
+      return bot.sendMessage(chatId,
+        err.message,
+        { parse_mode: 'markdown' });
+    } finally {
+      await browser.close();
+    }
+
   })();
 };

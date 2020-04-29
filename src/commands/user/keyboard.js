@@ -12,12 +12,13 @@ module.exports = function (bot, msg) {
 
       var firstLoad, secondLoad;
 
-      if (config.DE_mode === 'active') {
+      if (config.DE_mode) {
         firstLoad = [
           { text: 'Сегодня', callback_data: '/today' },
           { text: 'Завтра', callback_data: '/tomorrow' },
         ];
         secondLoad = [
+          { text: 'Неделя', callback_data: '/week' },
           { text: 'Выбрать день', callback_data: '/selectday' },
         ];
       } else {

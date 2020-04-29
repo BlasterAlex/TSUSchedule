@@ -45,7 +45,7 @@ mongoose.connect(process.env.MONGODB_URI || configPrivate.MONGODB_URI, {
 String.prototype.capitalize = function () { return this.charAt(0).toUpperCase() + this.slice(1); };
 
 // Работа с командами пользователя
-require('./src/bot')(bot);
+require('./src/bot').listener(bot);
 
 // Задачи по расписанию
 require('./src/crontab')(bot);

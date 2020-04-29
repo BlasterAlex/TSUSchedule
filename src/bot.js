@@ -3,14 +3,15 @@ const moment = require('moment-timezone'); // for working with dates
 
 var config = JSON.parse(fs.readFileSync('config/config.json'));
 
-module.exports = function (bot) {
+// Отслеживание действий пользователя
+module.exports.listener = function (bot) {
 
   // Обработка сообщений
   bot.onText(/(.+)/, (msg) => {
     const chatId = msg.chat.id;
 
     // Разбор команд
-    var commands = require('./utils/parsing/text')(bot, chatId, msg);
+    var commands = require('./helpers/parsing/text')(bot, chatId, msg);
     if (commands.exit) return;
 
     // Запуск основного алгоритма
@@ -20,16 +21,16 @@ module.exports = function (bot) {
 
   // Обработка кнопок ответа
   bot.on('callback_query', (msg) => {
-    require('./utils/parsing/callbackQuery')(bot, msg);
+    require('./helpers/parsing/callbackQuery')(bot, msg);
   });
 
 };
 
 // Запуск основного алгоритма
-function run(bot, chatId, commands) {
+var run = function (bot, chatId, commands) {
 
   // Сдвиг текущего дня
-  var today = moment().tz(config.timeZone, true);
+  var today = moment().tz(config.timeZone, true).locale(config.locale);
   today.add(commands.fromNow, 'days');
 
   // Выполнение команд пользователя
@@ -52,32 +53,27 @@ function run(bot, chatId, commands) {
           parse_mode: 'markdown'
         });
 
-      if (config.DE_mode == 'active') {
-        require('./utils/shedule/scheduleGetterDE')({
-          bot: bot,
-          user: user[0],
-          group: user[0].group,
-          today: today,
-        });
-        return bot.sendMessage(chatId, 'Дистанционка в работе', { parse_mode: 'markdown' });
+      // Формирование объекта для отправки
+      let data = { bot: bot, user: user[0], };
+      if (!config.DE_mode) {
+        data.inst = inst[0];
+        data.today = today;
+        data.week = today.diff(moment(config.academYBegin, 'DD/MM/YYYY'), 'weeks') + 1;
       }
 
       // Получение расписания с сайта
-      require('./utils/shedule/scheduleGetter')({
-        bot: bot,
-        user: user[0],
-        inst: inst[0],
-        today: today,
-        week: today.diff(moment(config.academYBegin, 'DD/MM/YYYY'), 'weeks') + 1
-      }, function (schedule) {
+      require('./helpers/schedule/scheduleGetter')(data, function (schedule) {
 
-        let isEmpty = a => Array.isArray(a) && a.every(isEmpty);
-        if (isEmpty(schedule))
-          return bot.sendMessage(chatId, 'Я не смог найти расписание для группы *"' +
-            user[0].group + '"*.\n\n' +
-            fs.readFileSync('data/messages/whoami.txt'), {
-            parse_mode: 'markdown'
-          });
+        // Вывод ошибки
+        if (!config.DE_mode) {
+          let isEmpty = a => Array.isArray(a) && a.every(isEmpty);
+          if (isEmpty(schedule))
+            return bot.sendMessage(chatId, 'Я не смог найти расписание для группы *"' +
+              user[0].group + '"*.\n\n' +
+              fs.readFileSync('data/messages/whoami.txt'), {
+              parse_mode: 'markdown'
+            });
+        }
 
         // Требуется расписание на один день
         if (commands.onWeek === false)
@@ -85,7 +81,9 @@ function run(bot, chatId, commands) {
             bot: bot,
             chatId: chatId,
             today: today,
-            schedule: schedule[today.day() - 1]
+            schedule: !config.DE_mode ?
+              schedule[today.day() - 1] :
+              schedule.filter(day => day.date === today.format('DD.MM.YYYY'))
           });
 
         // Требуется расписание на неделю
@@ -97,7 +95,11 @@ function run(bot, chatId, commands) {
           user: user[0],
           schedule: schedule
         });
+
       });
     });
   });
-}
+
+};
+
+module.exports.run = run;
