@@ -28,7 +28,7 @@ module.exports.findByGroup = function (group, callback) {
 };
 
 module.exports.updateName = function (chatId, fullName) {
-  User.findOneAndUpdate({ chatId: chatId }, { fullName: fullName }, { upsert: true }, function (err) {
+  User.findOneAndUpdate({ _id: chatId }, { fullName: fullName }, { upsert: true }, function (err) {
     if (err) console.error(err);
   });
 };
