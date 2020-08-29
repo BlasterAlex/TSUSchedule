@@ -9,8 +9,8 @@ module.exports.getAll = function (callback) {
   });
 };
 
-module.exports.findByChatId = function (chatId, callback) {
-  User.find({ chatId: chatId }, function (err, user) {
+module.exports.find = function (chatId, callback) {
+  User.find({ _id: chatId }, function (err, user) {
     if (err)
       return console.error(err);
 

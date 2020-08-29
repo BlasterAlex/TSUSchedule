@@ -29,12 +29,12 @@
     "crypto": "^1.0.1",
     "eslint": "^6.8.0",
     "he": "^1.2.0",
-    "moment-timezone": "^0.5.26",
-    "mongoose": "^5.7.1",
+    "moment-timezone": "^0.5.31",
+    "mongoose": "^5.10.2",
     "node-telegram-bot-api": "^0.30.0",
     "pattern-emitter": "^1.0.0",
     "puppeteer": "^1.20.0",
     "socks5-https-client": "^1.2.1",
-    "xlsx": "^0.15.1"
+    "xlsx": "^0.15.6"
   }
 }

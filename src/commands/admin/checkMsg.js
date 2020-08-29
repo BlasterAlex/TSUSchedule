@@ -1,8 +1,12 @@
 const fs = require('fs');
 
 module.exports = function (bot, chatId) {
+  // bot.sendVideo(chatId, 'data/mailing/video.mp4', {
+  //   caption: require('fs').readFileSync('data/mailing/message.txt'),
+  //   parse_mode: 'markdown'
+  // });
   bot.sendMessage(chatId, 'Так выглядит ваше сообщение:\n\n' +
-    fs.readFileSync('data/messages/mailing.txt') + '\n\nОтправляю?', {
+    fs.readFileSync('data/mailing/message.txt') + '\n\nОтправляю?', {
     parse_mode: 'markdown',
     reply_markup: JSON.stringify({
       inline_keyboard: [

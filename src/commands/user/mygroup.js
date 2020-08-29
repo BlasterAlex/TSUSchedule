@@ -3,7 +3,7 @@ const fs = require('fs');
 module.exports = function (bot, chatId) {
 
   // Проверка пользователя
-  require('../../repositories/UserRepository').findByChatId(chatId, function (user) {
+  require('../../repositories/UserRepository').find(chatId, function (user) {
     if (!user.length)
       return bot.sendMessage(chatId, 'Кто вы, я вас не знаю... ' +
         fs.readFileSync('data/messages/registration.txt'), {

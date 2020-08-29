@@ -34,7 +34,7 @@ module.exports = function (param) {
     '</html>', { decodeEntities: false });
 
   // Заполнение таблицы контентом
-  if (!config.DE_mode) {
+  if (!config.rosdistant) {
 
     // Заголовок таблицы
     for (let i = 1; i <= schedule.length; ++i) {
@@ -178,10 +178,13 @@ module.exports = function (param) {
             text += '<span style="color: #2e58ff; font-weight: bold">' + course.coursename + '</span><br>';
 
             // Имя преподавателя
-            text += '<span style="font-weight: bold">' + course.teacher + '</span><br>';
+            text += course.teacher.length ? ('<span style="font-weight: bold">' + course.teacher + '</span><br>') : '<br>';
 
             // Время занятия
             text += '<span>' + course.time + '</span><br>';
+
+            // Аудитория
+            text += course.audience.length ? ('<span>' + course.audience + '</span><br>') : '<br>';
           }
         }
 

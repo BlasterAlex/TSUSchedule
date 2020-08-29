@@ -56,7 +56,6 @@ module.exports = function (bot, chatId, msg) {
   if (new RegExp(['/reg', 'рег', 'регистрация',
     '/group', 'группа', '/institute',
     'инст', 'институт', '/course', 'курс',
-    '/rosdistant', 'росдистант',
     '/login', 'логин', '/password', 'пароль', '/showpassword'
   ].join('|')).test(lowerMsg)) {
     commands.exit = true;
@@ -108,9 +107,10 @@ module.exports = function (bot, chatId, msg) {
       case '/week':
       case 'неделя':
         commands.onWeek = true;
-        commands.fromNow = 0;
+        commands.fromNow = 7;
         break;
       case '/help':
+      case '/start':
       case 'помощь':
       case 'помогити':
         commands.exit = true;

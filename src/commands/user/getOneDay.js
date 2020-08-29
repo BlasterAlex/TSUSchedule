@@ -4,8 +4,9 @@ module.exports = function (param) {
 
   let message = '*' + param.today.locale('ru').format('dddd, DD MMMM').capitalize() + '*\n\n';
 
-  if (!config.DE_mode) {
+  if (!config.rosdistant) {
 
+    // Получение расписания с сайта вуза
     if (!param.schedule || param.schedule.every(a => a === ''))
       return param.bot.sendMessage(param.chatId, message +
         'Пустой день', {
@@ -29,8 +30,9 @@ module.exports = function (param) {
     courses.forEach(function (course) {
       message += '*' + course.pairNum + '-я ' + course.time + '*\n';
       message += course.coursename + '\n';
-      message += '_' + course.teacher + '_\n';
-      message += course.link + '\n';
+      message += course.teacher.length ? ('_' + course.teacher + '_\n') : '';
+      message += course.link.length ? (course.link + '\n') : '';
+      message += course.audience.length ? (course.audience + '\n') : '';
       message += '\n';
     });
 

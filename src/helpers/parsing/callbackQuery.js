@@ -10,7 +10,7 @@ module.exports = function (bot, msg) {
           //   caption: require('fs').readFileSync('data/messages/mailing.txt'),
           //   parse_mode: 'markdown'
           // });
-          bot.sendMessage(user.chatId, require('fs').readFileSync('data/messages/mailing.txt'), { parse_mode: 'markdown' });
+          bot.sendMessage(user.chatId, require('fs').readFileSync('data/mailing/message.txt'), { parse_mode: 'markdown' });
           console.log(user.chatId);
         });
         bot.editMessageReplyMarkup({ inline_keyboard: [] }, {

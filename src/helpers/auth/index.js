@@ -7,6 +7,9 @@ const ENCRYPTION_KEY = // Must be 256 bits (32 characters)
 
 var User = require('../../models/User');
 
+// Массив открытых страниц пользователей
+var userPages = [];
+
 function encrypt(password) {
   let iv = crypto.randomBytes(16);
   let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
@@ -42,22 +45,34 @@ var registrate = function (bot, chatId, user) {
       });
 
     // Проверка номера курса
-    if (user.course && !(Number.isInteger(user.course) && user.course > 0))
-      return bot.sendMessage(chatId, 'Неправильно введен номер курса, перепроверьте вводимые данные',
-        { parse_mode: 'markdown' });
+    if (typeof user.course !== 'undefined') {
+      if (!Number.isInteger(user.course))
+        return bot.sendMessage(chatId, 'Номер курса должен быть целым числом',
+          { parse_mode: 'markdown' });
+      user.course = Number(user.course);
+      if (user.course <= 0)
+        return bot.sendMessage(chatId, 'Номер курса должен быть целым положительным числом',
+          { parse_mode: 'markdown' });
+    }
 
     // Шифрование пароля
     if (user.password)
       user.password = encrypt(user.password);
 
     // Добавление нового или изменение старого пользователя
-    User.findOneAndUpdate({ chatId: chatId }, user, { upsert: true }, function (err, res) {
+    User.findOneAndUpdate({ _id: chatId }, user, { upsert: true }, function (err, res) {
       if (err) return console.error(err);
 
       if (res)
         bot.sendMessage(chatId, 'Данные успешно обновлены');
       else
         bot.sendMessage(chatId, 'Данные успешно добавлены');
+
+      const userPage = userPages.find(o => o.chatId == chatId);
+      if (userPage) {
+        userPage.page.browser().close();
+        userPages.splice(userPages.indexOf(userPages), 1);
+      }
 
       require('../../commands/user/whoami')(bot, chatId);
     });
@@ -67,7 +82,7 @@ var registrate = function (bot, chatId, user) {
 
 // Получение данных пользователя Росдистант
 var getRosdistant = function (bot, chatId, callback) {
-  require('../../repositories/UserRepository').findByChatId(chatId, function (user) {
+  require('../../repositories/UserRepository').find(chatId, function (user) {
 
     if (!user.length)
       return bot.sendMessage(chatId, 'Кто вы, я вас не знаю... ' +
@@ -76,7 +91,7 @@ var getRosdistant = function (bot, chatId, callback) {
       });
 
     if (!user[0].password)
-      return bot.sendMessage(chatId, 'Вы не авторизовались в Росдистант. ' +
+      return bot.sendMessage(chatId, 'Вы не зарегистрированы. ' +
         fs.readFileSync('data/messages/rosdistant.txt'), {
         parse_mode: 'markdown'
       });
@@ -89,10 +104,10 @@ var getRosdistant = function (bot, chatId, callback) {
 // Отобразить пароль пользователя
 var showPassword = function (bot, chatId) {
   getRosdistant(bot, chatId, function (user) {
-    bot.sendMessage(chatId, 'Ваш пароль на Росдистант: *' + user.password + '*', {
+    bot.sendMessage(chatId, 'Ваш пароль от Росдистант: *' + user.password + '*', {
       parse_mode: 'markdown'
     });
   });
 };
 
-module.exports = { registrate, getRosdistant, showPassword }; 
+module.exports = { registrate, getRosdistant, showPassword, userPages }; 

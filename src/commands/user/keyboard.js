@@ -1,4 +1,5 @@
-const config = JSON.parse(require('fs').readFileSync('config/config.json'));
+const fs = require('fs');
+const config = JSON.parse(fs.readFileSync('config/config.json'));
 
 module.exports = function (bot, msg) {
   let chatId = msg.chat.id;
@@ -12,7 +13,7 @@ module.exports = function (bot, msg) {
 
       var firstLoad, secondLoad;
 
-      if (config.DE_mode) {
+      if (config.rosdistant) {
         firstLoad = [
           { text: 'Сегодня', callback_data: '/today' },
           { text: 'Завтра', callback_data: '/tomorrow' },
