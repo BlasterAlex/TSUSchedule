@@ -14,6 +14,17 @@ module.exports = function (param, callback) {
   var user = param.user;
   var chatId = user._id;
 
+  // Проверка статуса авторизации
+  async function checkLogIn() {
+    const user = userPages.find(o => o.chatId === chatId);
+    if (!user) return false;
+    await user.page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] });
+    return await user.page.evaluate(() => {
+      return ((!document.querySelector('.loginform') && document.querySelector('#page'))
+        || document.querySelector('.loginerrors')) ? true : false;
+    });
+  }
+
   if (!config.rosdistant) {
 
     var today = param.today;
@@ -115,11 +126,11 @@ module.exports = function (param, callback) {
 
   } else {
 
-    const URL = config.scheduleRosdistant;
+    // Расписание пар
     const pairNumbers = ['08:30', '10:15', '12:45', '14:30', '16:15', '18:00'];
 
+    // Получение расписания с страницы пользователя
     var getSchedule = () => {
-      // Получение расписания с сайта
       bot.sendMessage(chatId, 'Получение расписания, ожидайте...').then(function (sender) {
         const messageId = sender.message_id;
         (async () => {
@@ -196,7 +207,7 @@ module.exports = function (param, callback) {
     };
 
     // Авторизация пользователя в системе
-    if (!userPages.find(o => o.chatId === chatId)) {
+    var authorization = () => {
       bot.sendMessage(chatId, 'Авторизация в системе Росдистант, ожидайте...').then(function (sender) {
         const messageId = sender.message_id;
 
@@ -222,7 +233,7 @@ module.exports = function (param, callback) {
                   width: 1920,
                   height: 1080,
                 });
-                await page.goto(URL);
+                await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
 
                 // Авторизация пользователя в системе
                 await page.evaluate(function (login, password) {
@@ -237,11 +248,11 @@ module.exports = function (param, callback) {
                 await new Promise((resolve) => {
                   const interval = async function () {
                     try {
-                      let waiting = await page.evaluate(() => {
+                      const successful = await page.evaluate(() => {
                         return (!document.querySelector('.loginform') && document.querySelector('#page'))
                           || document.querySelector('.loginerrors');
                       });
-                      if (waiting)
+                      if (successful)
                         resolve();
                       else
                         setTimeout(interval, 2000);
@@ -255,7 +266,7 @@ module.exports = function (param, callback) {
                 });
 
                 // Проверка статуса авторизации
-                let status = await page.evaluate(() => {
+                const state = await page.evaluate(() => {
                   let error = document.querySelector('.loginerrors .error');
                   if (error && error.innerText === 'Неверный логин или пароль, попробуйте заново.')
                     return 'wrong user data';
@@ -263,7 +274,7 @@ module.exports = function (param, callback) {
                 });
 
                 // Ошибка авторизации
-                switch (status) {
+                switch (state) {
                   case 'wrong user data':
                     return bot.sendMessage(chatId,
                       'Неправильные данные для входа:\n' +
@@ -272,7 +283,7 @@ module.exports = function (param, callback) {
                       { parse_mode: 'markdown' });
                 }
 
-                // Сохранение страницы
+                // Кэширование страницы
                 userPages.push({ 'chatId': chatId, 'page': page });
 
                 // Получение расписания с сайта
@@ -296,11 +307,12 @@ module.exports = function (param, callback) {
 
         });
       });
-    }
+    };
 
-    // Пользователь сохранен
-    else {
-      getSchedule();
-    }
+    checkLogIn().then((isLogIn) => {
+      if (isLogIn) getSchedule();
+      else authorization();
+    });
+
   }
 };
