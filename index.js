@@ -3,7 +3,7 @@ process.env.NTBA_FIX_350 = 1;
 
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs'); // for working with files
-const fetch = require('node-fetch'); // for keeping bot active
+// const https = require('https'); // for keeping bot active
 const mongoose = require('mongoose'); // for working with db
 
 var configPrivate;
@@ -11,9 +11,12 @@ var configPrivate;
 // Настройки подключения бота
 var bot;
 if (process.env.TELEGRAM_TOKEN) {
+  const externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://tsu-schedule-bot.herokuapp.com';
   bot = new TelegramBot(process.env.TELEGRAM_TOKEN, {
-    polling: true
+    polling: true,
+    webHook: { port: process.env.PORT || 5000, host: '0.0.0.0' }
   });
+  bot.setWebHook(externalUrl + ':443/bot' + process.env.TELEGRAM_TOKEN);
 } else {
   configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
   bot = new TelegramBot(configPrivate.TELEGRAM_TOKEN, {
@@ -55,21 +58,21 @@ bot.on('polling_error', (err) => console.log(err));
 
 // Держать бота активным
 // https.createServer().listen(process.env.PORT || 5000).on('request', function (req, res) { res.end(''); });
-// setInterval(function () { https.get('https://tsu-schedule-bot.herokuapp.com'); }, 300000); // every 5 minutes (300000)
+// setInterval(function () { https.get('https://tsu-schedule-bot.herokuapp.com'); }, 30 * 1000); // every 5 minutes (300000)
 
-const interval = 1 * 60 * 1000; // interval in milliseconds - {25mins x 60s x 1000}ms
-function wake() {
-  var handler;
-  try {
-    handler = setInterval(() => {
-      fetch('https://tsu-schedule-bot.herokuapp.com')
-        .then(res => console.log('Keep bot active: ' + (res.ok ? 'OK' : 'NOT OK') + `, status: ${res.status}`))
-        .catch(err => console.error(`Error occured: ${err}`));
-    }, interval);
-  } catch (err) {
-    console.error('Error occured: retrying...');
-    clearInterval(handler);
-    return setTimeout(() => wake(), 10000);
-  }
-}
-wake();
+// const interval = 1 * 60 * 1000; // interval in milliseconds - {25mins x 60s x 1000}ms
+// function wake() {
+//   var handler;
+//   try {
+//     handler = setInterval(() => {
+//       fetch('https://tsu-schedule-bot.herokuapp.com')
+//         .then(res => console.log('Keep bot active: ' + (res.ok ? 'OK' : 'NOT OK') + `, status: ${res.status}`))
+//         .catch(err => console.error(`Error occured: ${err}`));
+//     }, interval);
+//   } catch (err) {
+//     console.error('Error occured: retrying...');
+//     clearInterval(handler);
+//     return setTimeout(() => wake(), 10000);
+//   }
+// }
+// wake();
