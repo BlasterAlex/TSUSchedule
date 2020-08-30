@@ -1,37 +1,14 @@
 process.env.NTBA_FIX_319 = 1;
 process.env.NTBA_FIX_350 = 1;
 
-const TelegramBot = require('node-telegram-bot-api');
-const fs = require('fs'); // for working with files
 // const https = require('https'); // for keeping bot active
 const mongoose = require('mongoose'); // for working with db
+const fs = require('fs'); // for working with files
 
-var configPrivate;
-
-// Настройки подключения бота
-var bot;
-if (process.env.TELEGRAM_TOKEN) {
-  const externalUrl = process.env.CUSTOM_ENV_VARIABLE || 'https://tsu-schedule-bot.herokuapp.com';
-  bot = new TelegramBot(process.env.TELEGRAM_TOKEN, {
-    polling: true,
-    webHook: { port: process.env.PORT || 5000, host: '0.0.0.0' }
-  });
-  bot.setWebHook(externalUrl + ':443/bot' + process.env.TELEGRAM_TOKEN);
-} else {
-  configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
-  bot = new TelegramBot(configPrivate.TELEGRAM_TOKEN, {
-    polling: true,
-    request: {
-      agentClass: require('socks5-https-client/lib/Agent'),
-      agentOptions: {
-        socksHost: 'localhost',
-        socksPort: '9050'
-      }
-    }
-  });
-}
+const bot = require('./src/bot').bot;
 
 // Подключение к бд
+const configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
 mongoose.connect(process.env.MONGODB_URI || configPrivate.MONGODB_URI, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
@@ -47,14 +24,11 @@ mongoose.connect(process.env.MONGODB_URI || configPrivate.MONGODB_URI, {
 // Форматирование строки как в предложении
 String.prototype.capitalize = function () { return this.charAt(0).toUpperCase() + this.slice(1); };
 
-// Работа с командами пользователя
-require('./src/bot').listener(bot);
-
 // Задачи по расписанию
 require('./src/crontab')(bot);
 
-// Вывод ошибок
-bot.on('polling_error', (err) => console.log(err));
+// Запуск бота
+require('./src/web')(bot);
 
 // Держать бота активным
 // https.createServer().listen(process.env.PORT || 5000).on('request', function (req, res) { res.end(''); });

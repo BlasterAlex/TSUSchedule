@@ -1,33 +1,52 @@
 const fs = require('fs'); // for working with files
 const moment = require('moment-timezone'); // for working with dates
 
+const TelegramBot = require('node-telegram-bot-api');
 const config = JSON.parse(fs.readFileSync('config/config.json'));
 
+// Настройки подключения бота
+var bot;
+if (process.env.TELEGRAM_TOKEN) {
+  bot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true, });
+} else {
+  const configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
+  bot = new TelegramBot(configPrivate.TELEGRAM_TOKEN, {
+    polling: true,
+    request: {
+      agentClass: require('socks5-https-client/lib/Agent'),
+      agentOptions: {
+        socksHost: 'localhost',
+        socksPort: '9050'
+      }
+    }
+  });
+}
+
 // Отслеживание действий пользователя
-module.exports.listener = function (bot) {
+// module.exports.listener = function (bot) {
 
-  // Обработка сообщений
-  bot.onText(/(.+)/, (msg) => {
-    const chatId = msg.chat.id;
+// Обработка сообщений
+bot.onText(/(.+)/, (msg) => {
+  const chatId = msg.chat.id;
 
-    // Разбор команд
-    var commands = require('./helpers/parsing/text')(bot, chatId, msg);
-    if (commands.exit) return;
+  // Разбор команд
+  var commands = require('./helpers/parsing/text')(bot, chatId, msg);
+  if (commands.exit) return;
 
-    // Запуск основного алгоритма
-    run(bot, chatId, commands);
+  // Запуск основного алгоритма
+  run(chatId, commands);
+});
 
-  });
+// Обработка кнопок ответа
+bot.on('callback_query', (msg) => {
+  require('./helpers/parsing/callbackQuery')(bot, msg);
+});
 
-  // Обработка кнопок ответа
-  bot.on('callback_query', (msg) => {
-    require('./helpers/parsing/callbackQuery')(bot, msg);
-  });
-
-};
+// Вывод ошибок
+bot.on('polling_error', (err) => console.log(err));
 
 // Запуск основного алгоритма
-var run = function (bot, chatId, commands) {
+var run = function (chatId, commands) {
 
   // Сдвиг текущего дня
   var today = moment().tz(config.timeZone, true).locale(config.locale);
@@ -102,4 +121,4 @@ var run = function (bot, chatId, commands) {
 
 };
 
-module.exports.run = run;
+module.exports = { bot, run };
