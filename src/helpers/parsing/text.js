@@ -26,7 +26,7 @@ module.exports = function (bot, chatId, msg) {
     case 'след неделя':
       commands.onWeek = true;
       commands.withoutDay = true;
-      commands.fromNow = 0;
+      commands.fromNow = 7;
       return commands;
     case '/whoami':
     case 'кто я':
@@ -107,7 +107,7 @@ module.exports = function (bot, chatId, msg) {
       case '/week':
       case 'неделя':
         commands.onWeek = true;
-        commands.fromNow = 7;
+        commands.fromNow = 0;
         break;
       case '/help':
       case '/start':
