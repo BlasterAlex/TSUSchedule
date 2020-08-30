@@ -4,12 +4,10 @@ process.env.NTBA_FIX_350 = 1;
 // const https = require('https'); // for keeping bot active
 const mongoose = require('mongoose'); // for working with db
 const fs = require('fs'); // for working with files
-
 const bot = require('./src/bot').bot;
 
 // Подключение к бд
-const configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
-mongoose.connect(process.env.MONGODB_URI || configPrivate.MONGODB_URI, {
+mongoose.connect(process.env.MONGODB_URI || JSON.parse(fs.readFileSync('config/private.json')).MONGODB_URI, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
   useCreateIndex: true,
