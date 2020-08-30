@@ -1,14 +1,13 @@
-const fs = require('fs'); // for working with files
-const moment = require('moment-timezone'); // for working with dates
-
+const moment = require('moment-timezone');
 const TelegramBot = require('node-telegram-bot-api');
-const config = JSON.parse(fs.readFileSync('config/config.json'));
+const config = require('../config/config.json');
 
 // Настройки подключения бота
 var bot;
 if (process.env.TELEGRAM_TOKEN) {
   bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
   bot.setWebHook(process.env.HEROKU_URL + bot.token);
+  console.log(bot.token);
 } else {
   const configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
   bot = new TelegramBot(configPrivate.TELEGRAM_TOKEN, {
@@ -23,8 +22,7 @@ if (process.env.TELEGRAM_TOKEN) {
   });
 }
 
-// Отслеживание действий пользователя
-// module.exports.listener = function (bot) {
+console.log('Bot server started in the ' + process.env.NODE_ENV + ' mode');
 
 // Обработка сообщений
 bot.onText(/(.+)/, (msg) => {

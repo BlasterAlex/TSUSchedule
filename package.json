@@ -7,7 +7,8 @@
     "start": "node index.js",
     "lint": "eslint '**/*.js'",
     "lint:fix": "eslint '**/*.js' --fix",
-    "kill": "kill `sudo netstat -nlp | grep :5000 | grep -oP '(\\d+)(?=/node)'`"
+    "kill": "kill `sudo netstat -nlp | grep :5000 | grep -oP '(\\d+)(?=/node)'`",
+    "switch_to_dev": "wget --spider https://api.telegram.org/bot`sed -En 's/^\\s*\"TELEGRAM_TOKEN\":\\s*\"(.*)\",/\\1/p' config/private.json`/setWebhook\\?url\\= --delete-after && node index.js"
   },
   "engines": {
     "node": "12.2.0"
