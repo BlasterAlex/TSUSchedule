@@ -3,7 +3,6 @@ process.env.NTBA_FIX_350 = 1;
 
 const TelegramBot = require('node-telegram-bot-api');
 const fs = require('fs'); // for working with files
-const https = require('https'); // for using HTTP server 
 const mongoose = require('mongoose'); // for working with db
 
 var configPrivate;
@@ -54,5 +53,6 @@ require('./src/crontab')(bot);
 bot.on('polling_error', (err) => console.log(err));
 
 // Держать бота активным
-https.createServer().listen(process.env.PORT || 5000).on('request', function (req, res) { res.end(''); });
-setInterval(function () { https.get('https://tsu-schedule-bot.herokuapp.com'); }, 300000); // every 5 minutes (300000)
+// https.createServer().listen(process.env.PORT || 5000).on('request', function (req, res) { res.end(''); });
+// setInterval(function () { https.get('https://tsu-schedule-bot.herokuapp.com'); }, 300000); // every 5 minutes (300000)
+require('heroku-self-ping').default('https://tsu-schedule-bot.herokuapp.com');

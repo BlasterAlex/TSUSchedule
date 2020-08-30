@@ -115,7 +115,7 @@ module.exports = function (param, callback) {
 
   } else {
 
-    const URL = config.rosdistantSchedule;
+    const URL = config.scheduleRosdistant;
     const pairNumbers = ['08:30', '10:15', '12:45', '14:30', '16:15', '18:00'];
 
     var getSchedule = () => {
