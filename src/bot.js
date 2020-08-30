@@ -7,7 +7,8 @@ const config = JSON.parse(fs.readFileSync('config/config.json'));
 // Настройки подключения бота
 var bot;
 if (process.env.TELEGRAM_TOKEN) {
-  bot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true, });
+  bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
+  bot.setWebHook(process.env.HEROKU_URL + bot.token);
 } else {
   const configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
   bot = new TelegramBot(configPrivate.TELEGRAM_TOKEN, {
