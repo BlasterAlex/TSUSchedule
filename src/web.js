@@ -18,19 +18,17 @@ var server = app.listen(process.env.PORT || 5000, '0.0.0.0', () => {
 
 if (process.env.HEROKU_URL) {
 
-  const interval = 1 * 60 * 1000;
+  const interval = 25 * 60 * 1000; // interval in milliseconds - 25 mins
   (function wake(url) {
     var handler;
     try {
-
       handler = setInterval(() => {
         fetch(url)
-          .then(res => console.log(`response-ok: ${res.ok}, status: ${res.status}`))
-          .catch(err => console.error(`Error occured: ${err}`));
+          .then(res => console.log('Ping heroku: ' + (res.ok ? 'OK' : 'NOT OK') + ` status: ${res.status}`))
+          .catch(err => console.error(`Ping heroku error: ${err}`));
       }, interval);
-
     } catch (err) {
-      console.error('Error occured: retrying...');
+      console.error('Ping heroku error: retrying...');
       clearInterval(handler);
       return setTimeout(() => wake(url), 10000);
     }
