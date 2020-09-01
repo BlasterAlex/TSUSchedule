@@ -16,7 +16,7 @@ var server = app.listen(process.env.PORT || 5000, '0.0.0.0', () => {
   console.log('Web server started at http://%s:%s', host, port);
 });
 
-if (process.env.HEROKU_URL) {
+/* if (process.env.HEROKU_URL) {
 
   const interval = 25 * 60 * 1000; // interval in milliseconds - 25 mins
   (function wake(url) {
@@ -34,7 +34,7 @@ if (process.env.HEROKU_URL) {
     }
   })(process.env.HEROKU_URL);
 
-}
+} */
 
 module.exports = (bot) => {
   app.post('/' + bot.token, (req, res) => {
