@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const express = require('express');
 const bodyParser = require('body-parser');
 const packageInfo = require('../package.json');
@@ -14,6 +15,28 @@ var server = app.listen(process.env.PORT || 5000, '0.0.0.0', () => {
   const port = server.address().port;
   console.log('Web server started at http://%s:%s', host, port);
 });
+
+if (process.env.HEROKU_URL) {
+
+  const interval = 1 * 60 * 1000;
+  (function wake(url) {
+    var handler;
+    try {
+
+      handler = setInterval(() => {
+        fetch(url)
+          .then(res => console.log(`response-ok: ${res.ok}, status: ${res.status}`))
+          .catch(err => console.error(`Error occured: ${err}`));
+      }, interval);
+
+    } catch (err) {
+      console.error('Error occured: retrying...');
+      clearInterval(handler);
+      return setTimeout(() => wake(url), 10000);
+    }
+  })(process.env.HEROKU_URL);
+
+}
 
 module.exports = (bot) => {
   app.post('/' + bot.token, (req, res) => {

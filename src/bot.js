@@ -9,8 +9,7 @@ if (process.env.TELEGRAM_TOKEN) {
   bot.setWebHook(process.env.HEROKU_URL + bot.token);
   console.log(bot.token);
 } else {
-  const configPrivate = JSON.parse(fs.readFileSync('config/private.json'));
-  bot = new TelegramBot(configPrivate.TELEGRAM_TOKEN, {
+  bot = new TelegramBot(require('../config/private.json').TELEGRAM_TOKEN, {
     polling: true,
     request: {
       agentClass: require('socks5-https-client/lib/Agent'),
@@ -22,7 +21,7 @@ if (process.env.TELEGRAM_TOKEN) {
   });
 }
 
-console.log('Bot server started in the ' + process.env.NODE_ENV + ' mode');
+console.log('Bot server started in the ' + (process.env.NODE_ENV || 'development') + ' mode');
 
 // Обработка сообщений
 bot.onText(/(.+)/, (msg) => {
