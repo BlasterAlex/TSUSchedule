@@ -375,7 +375,8 @@ module.exports = function (param, callback) {
             const schRosPair = schRos[schRosIndex].courses.indexOf(found);
             schRos[schRosIndex].courses[schRosPair].coursetype = pair.coursetype;
             schRos[schRosIndex].courses[schRosPair].time = pair.time;
-          }
+          } else
+            schRos[schRosIndex].courses.push(pair);
         }
       }
     }
