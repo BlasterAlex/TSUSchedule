@@ -1,6 +1,5 @@
 const fs = require('fs'); // for working with files
 const auth = require('../../helpers/auth');
-const config = JSON.parse(fs.readFileSync('config/config.json'));
 
 module.exports = function (bot, msg) {
 
@@ -21,40 +20,19 @@ module.exports = function (bot, msg) {
 
   // Получение данных для регистрации
   switch (command.toLowerCase()) {
+    case '/reg':
+    case 'рег':
+    case 'регистрация':
+      if (data.length < 3)
+        return bot.sendMessage(chatId, fs.readFileSync('data/messages/registration.txt'), { parse_mode: 'markdown' });
+      user.login = data[0];
+      user.password = data[1];
+      user.group = data[2];
+      break;
     case '/group':
     case 'группа':
       if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
       user.group = data[0];
-      break;
-    case '/institute':
-    case 'инст':
-    case 'институт':
-      if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
-      user.institute = data[0];
-      break;
-    case '/course':
-    case 'курс':
-      if (data.length < 1) return bot.sendMessage(chatId, 'Необходимо передать параметр', { parse_mode: 'markdown' });
-      user.course = parseInt(data[0]);
-      break;
-    case '/reg':
-    case 'рег':
-    case 'регистрация':
-      // Регистрация пользователя
-      if (!config.rosdistant) {
-        if (data.length < 3)
-          return bot.sendMessage(chatId, fs.readFileSync('data/messages/registration.txt'), { parse_mode: 'markdown' });
-        user.institute = data[0];
-        user.course = parseInt(data[1]);
-        user.group = data[2];
-      }
-      // Регистрация через Росдистант
-      else {
-        if (data.length < 2)
-          return bot.sendMessage(chatId, fs.readFileSync('data/messages/rosdistant.txt'), { parse_mode: 'markdown' });
-        user.login = data[0];
-        user.password = data[1];
-      }
       break;
     case '/login':
     case 'логин':

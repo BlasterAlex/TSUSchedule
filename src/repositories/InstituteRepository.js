@@ -26,7 +26,13 @@ module.exports.updateGroups = function (name, groups) {
 module.exports.findByGroup = function (group, callback) {
   Institute.find({}).exec(function (err, list) {
     if (err)
-      return console.error(err);
-    console.log(list);
+      return callback();
+    let left = list.length;
+    new Promise((resolve) => list.forEach((inst) => {
+      if (inst.groups) {
+        inst.groups.forEach((el) => { if (el.includes(group)) resolve(inst.name); });
+        if (--left === 0) resolve();
+      }
+    })).then(callback);
   });
 }

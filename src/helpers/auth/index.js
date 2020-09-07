@@ -1,9 +1,5 @@
 const fs = require('fs'); // for working with files
 const crypto = require('crypto');  // for password encryption
-const request = require('request'); // for getting html
-const cheerio = require('cheerio'); // for html parsing
-
-const config = require('../../../config/config.json');
 const ENCRYPTION_KEY = // Must be 256 bits (32 characters)
   process.env.ENCRYPTION_KEY ||
   JSON.parse(fs.readFileSync('config/private.json')).ENCRYPTION_KEY;
@@ -39,49 +35,34 @@ function decrypt(password) {
 // Регистрация пользователя
 var registrate = function (bot, chatId, user) {
 
-  // Проверка института
-  require('../../repositories/InstituteRepository').findByName(user.institute, function (inst) {
+  // Проверка названия группы
+  if (user.group && !user.group.match(/^[А-Яа-я]+-\d{4}[а-я]*$/i))
+    return bot.sendMessage(chatId, fs.readFileSync('data/messages/groupFormat.txt'),
+      { parse_mode: 'markdown' });
 
-    if (user.institute && inst.length === 0)
-      return bot.sendMessage(chatId, 'Не могу найти институт *"' + user.institute + '"*.\n' +
-        fs.readFileSync('data/messages/instituteList.txt'), {
-        parse_mode: 'markdown'
-      });
+  // Шифрование пароля
+  if (user.password)
+    user.password = encrypt(user.password);
 
-    // Проверка номера курса
-    if (typeof user.course !== 'undefined') {
-      if (!Number.isInteger(user.course))
-        return bot.sendMessage(chatId, 'Номер курса должен быть целым числом',
-          { parse_mode: 'markdown' });
-      user.course = Number(user.course);
-      if (user.course <= 0)
-        return bot.sendMessage(chatId, 'Номер курса должен быть целым положительным числом',
-          { parse_mode: 'markdown' });
+  // Добавление нового или изменение старого пользователя
+  User.findOneAndUpdate({ _id: chatId }, user, { upsert: true }, function (err, res) {
+    if (err) return console.error(err);
+
+    if (res)
+      bot.sendMessage(chatId, 'Данные успешно обновлены');
+    else
+      bot.sendMessage(chatId, 'Данные успешно добавлены');
+
+    // Удаление сохраненной страницы браузера
+    const userPage = userPages.find(o => o.chatId == chatId);
+    if (userPage) {
+      userPage.page.browser().close();
+      userPages.splice(userPages.indexOf(userPages), 1);
     }
 
-    // Шифрование пароля
-    if (user.password)
-      user.password = encrypt(user.password);
-
-    // Добавление нового или изменение старого пользователя
-    User.findOneAndUpdate({ _id: chatId }, user, { upsert: true }, function (err, res) {
-      if (err) return console.error(err);
-
-      if (res)
-        bot.sendMessage(chatId, 'Данные успешно обновлены');
-      else
-        bot.sendMessage(chatId, 'Данные успешно добавлены');
-
-      const userPage = userPages.find(o => o.chatId == chatId);
-      if (userPage) {
-        userPage.page.browser().close();
-        userPages.splice(userPages.indexOf(userPages), 1);
-      }
-
-      require('../../commands/user/whoami')(bot, chatId);
-    });
-
+    require('../../commands/user/whoami')(bot, chatId);
   });
+
 };
 
 // Получение данных пользователя Росдистант

@@ -28,8 +28,26 @@ module.exports = function (param) {
 
     let courses = param.schedule[0].courses;
     courses.forEach(function (course) {
-      message += '*' + course.pairNum + '-я ' + course.time + '*\n';
+      message += '*' + course.pairNum + '-я ' +
+        (course.time.length ? ('[' + course.time + ']') : '') + '*\n';
       message += course.coursename + '\n';
+
+      let coursetype;
+      switch (course.coursetype) {
+        case 'Пр':
+          coursetype = 'Практика';
+          break;
+        case 'Лаб':
+          coursetype = 'Лабораторная';
+          break;
+        case 'Лек':
+          coursetype = 'Лекция';
+          break;
+        default:
+          coursetype = '';
+      }
+
+      message += coursetype.length ? (coursetype + '\n') : '';
       message += course.teacher.length ? ('_' + course.teacher + '_\n') : '';
       message += course.link.length ? (course.link + '\n') : '';
       message += course.audience.length ? (course.audience + '\n') : '';

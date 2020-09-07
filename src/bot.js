@@ -50,6 +50,11 @@ var run = function (chatId, commands) {
   var today = moment().tz(config.timeZone, true).locale(config.locale);
   today.add(commands.fromNow, 'days');
 
+  // Начало учебного года
+  const academYBegin = moment(config.academYBegin, 'DD/MM/YYYY')
+    .tz(config.timeZone, true)
+    .locale(config.locale);
+
   // Выполнение команд пользователя
   require('./repositories/UserRepository').find(chatId, function (user) {
 
@@ -60,60 +65,35 @@ var run = function (chatId, commands) {
         parse_mode: 'markdown'
       });
 
-    // Поиск института пользователя
-    require('./repositories/InstituteRepository').findByName(user[0].institute, function (inst) {
+    // Формирование объекта для отправки
+    let data = { bot: bot, user: user[0], };
+    data.today = today;
+    data.week = today.week() - academYBegin.week() + 1;
 
-      if (!config.rosdistant && inst.length === 0)
-        return bot.sendMessage(chatId, 'Не могу найти институт *"' + user[0].institute + '"*.\n' +
-          'Пожалуйста, выполните повторную регистрацию.\n' +
-          fs.readFileSync('data/messages/instituteList.txt'), {
-          parse_mode: 'markdown'
-        });
+    // Получение расписания с сайта
+    require('./helpers/schedule/scheduleGetter')(data, function (schedule) {
 
-      // Формирование объекта для отправки
-      let data = { bot: bot, user: user[0], };
-      if (!config.rosdistant) {
-        data.inst = inst[0];
-        data.today = today;
-        data.week = today.diff(moment(config.academYBegin, 'DD/MM/YYYY'), 'weeks') + 1;
-      }
-
-      // Получение расписания с сайта
-      require('./helpers/schedule/scheduleGetter')(data, function (schedule) {
-
-        // Вывод ошибки
-        if (!config.rosdistant) {
-          let isEmpty = a => Array.isArray(a) && a.every(isEmpty);
-          if (isEmpty(schedule))
-            return bot.sendMessage(chatId, 'Я не смог найти расписание для группы *"' +
-              user[0].group + '"*.\n\n' +
-              fs.readFileSync('data/messages/whoami.txt'), {
-              parse_mode: 'markdown'
-            });
-        }
-
-        // Требуется расписание на один день
-        if (commands.onWeek === false)
-          return require('./commands/user/getOneDay')({
-            bot: bot,
-            chatId: chatId,
-            today: today,
-            schedule: !config.rosdistant ?
-              schedule[today.day() - 1] :
-              schedule.filter(day => day.date === today.format('DD.MM.YYYY'))
-          });
-
-        // Требуется расписание на неделю
-        require('./commands/user/getOneWeek')({
+      // Требуется расписание на один день
+      if (commands.onWeek === false)
+        return require('./commands/user/getOneDay')({
           bot: bot,
           chatId: chatId,
           today: today,
-          withoutDay: commands.withoutDay,
-          user: user[0],
-          schedule: schedule
+          schedule: !config.rosdistant ?
+            schedule[today.day() - 1] :
+            schedule.filter(day => day.date === today.format('DD.MM.YYYY'))
         });
 
+      // Требуется расписание на неделю
+      require('./commands/user/getOneWeek')({
+        bot: bot,
+        chatId: chatId,
+        today: today,
+        withoutDay: commands.withoutDay,
+        user: user[0],
+        schedule: schedule
       });
+
     });
   });
 

@@ -54,9 +54,7 @@ module.exports = function (bot, chatId, msg) {
 
   // Разбор команд с параметрами
   if (new RegExp(['/reg', 'рег', 'регистрация',
-    '/group', 'группа', '/institute',
-    'инст', 'институт', '/course', 'курс',
-    '/login', 'логин', '/password', 'пароль', '/showpassword'
+    '/group', 'группа', '/login', 'логин', '/password', 'пароль', '/showpassword'
   ].join('|')).test(lowerMsg)) {
     commands.exit = true;
     require('../../commands/user/registration')(bot, msg);
