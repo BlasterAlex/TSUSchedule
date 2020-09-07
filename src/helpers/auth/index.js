@@ -1,11 +1,15 @@
 const fs = require('fs'); // for working with files
 const crypto = require('crypto');  // for password encryption
+const request = require('request'); // for getting html
+const cheerio = require('cheerio'); // for html parsing
 
+const config = require('../../../config/config.json');
 const ENCRYPTION_KEY = // Must be 256 bits (32 characters)
   process.env.ENCRYPTION_KEY ||
   JSON.parse(fs.readFileSync('config/private.json')).ENCRYPTION_KEY;
 
-var User = require('../../models/User');
+const User = require('../../models/User');
+const UserRepository = require('../../repositories/UserRepository');
 
 // Массив открытых страниц пользователей
 var userPages = [];
@@ -82,7 +86,7 @@ var registrate = function (bot, chatId, user) {
 
 // Получение данных пользователя Росдистант
 var getRosdistant = function (bot, chatId, callback) {
-  require('../../repositories/UserRepository').find(chatId, function (user) {
+  UserRepository.find(chatId, function (user) {
 
     if (!user.length)
       return bot.sendMessage(chatId, 'Кто вы, я вас не знаю... ' +

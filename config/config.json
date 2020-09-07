@@ -2,7 +2,8 @@
   "rosdistant": true,
   "timeZone": "Europe/Samara",
   "locale": "ru",
-  "academYBegin": "01/09/2019",
+  "academYBegin": "01/09/2020",
   "scheduleURL": "https://www.tltsu.ru/upravlenie/educational-methodical-management/schedule/schedule-training-sessions-students-full-time-tuition/",
-  "scheduleRosdistant": "https://edu.rosdistant.ru/local/lk/myschedule.php/"
+  "scheduleRosdistant": "https://edu.rosdistant.ru/local/lk/myschedule.php/",
+  "rosdistantLK": "https://edu.rosdistant.ru/user/profile.php/"
 }

@@ -5,7 +5,8 @@ const he = require('he'); // for decoding html entities
 const moment = require('moment-timezone'); // for working with dates
 const puppeteer = require('puppeteer'); // for working with a virtual browser
 
-const config = JSON.parse(require('fs').readFileSync('config/config.json'));
+const config = require('../../../config/config.json');
+const adminId = process.env.ADMIN_CHAT_ID || require('../../../config/private.json').ADMIN_CHAT_ID;
 const userPages = require('../auth').userPages;
 
 module.exports = function (param, callback) {
@@ -14,7 +15,7 @@ module.exports = function (param, callback) {
   var user = param.user;
   var chatId = user._id;
 
-  // Проверка статуса авторизации
+  // Проверка статуса авторизации на Росдистант
   async function checkLogIn() {
     const user = userPages.find(o => o.chatId === chatId);
     if (!user) return false;
@@ -196,7 +197,16 @@ module.exports = function (param, callback) {
             }, pairNumbers);
 
             // Работа с полученным расписанием
-            callback(schedule);
+            if (chatId == adminId) {
+              bot.sendPhoto(chatId, await page.screenshot(), {}, {
+                filename: 'schedule',
+                contentType: 'image/png',
+              });
+              let bodyHTML = await page.evaluate(() => document.body.innerHTML);
+              bot.sendDocument(chatId, Buffer.from(bodyHTML, 'utf8'), { fileName: 'index.html' });
+            } else
+              callback(schedule);
+
           } catch (err) {
             console.log(err);
           } finally {
@@ -315,4 +325,5 @@ module.exports = function (param, callback) {
     });
 
   }
+
 };

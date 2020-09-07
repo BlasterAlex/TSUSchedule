@@ -16,3 +16,17 @@ module.exports.findByName = function (name, callback) {
     callback(inst);
   });
 };
+
+module.exports.updateGroups = function (name, groups) {
+  Institute.findOneAndUpdate({ name: name, groups: groups }, {}, { upsert: true }, function (err, res) {
+    if (err) return console.error(err);
+  });
+};
+
+module.exports.findByGroup = function (group, callback) {
+  Institute.find({}).exec(function (err, list) {
+    if (err)
+      return console.error(err);
+    console.log(list);
+  });
+}

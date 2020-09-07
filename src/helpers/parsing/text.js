@@ -2,7 +2,7 @@ const fs = require('fs'); // for working with files
 const moment = require('moment-timezone'); // for working with dates
 const Calendar = require('../calendar'); // for using inline-calendar in chat
 
-const adminId = process.env.ADMIN_CHAT_ID || JSON.parse(fs.readFileSync('config/private.json')).ADMIN_CHAT_ID;
+const adminId = process.env.ADMIN_CHAT_ID || require('../../../config/private.json').ADMIN_CHAT_ID;
 const config = JSON.parse(fs.readFileSync('config/config.json'));
 
 module.exports = function (bot, chatId, msg) {
@@ -84,6 +84,10 @@ module.exports = function (bot, chatId, msg) {
         require('../../commands/admin/updateNames')(bot, (text) => {
           bot.sendMessage(chatId, 'Список пользователей:\n' + text);
         });
+        return commands;
+      case 'update groups':
+        commands.exit = true;
+        require('../../commands/admin/updateGroups')(bot, chatId);
         return commands;
     }
   }
