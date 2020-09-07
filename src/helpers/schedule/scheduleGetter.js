@@ -225,6 +225,13 @@ module.exports = function (param, callback) {
           (async () => {
             try {
 
+              // Проверка на наличие открытой страницы
+              const userPage = userPages.find(o => o.chatId == chatId);
+              if (userPage) {
+                userPage.page.browser().close();
+                userPages.splice(userPages.indexOf(userPages), 1);
+              }
+
               // Запуск браузера
               const browser = await puppeteer.launch({
                 headless: true,
