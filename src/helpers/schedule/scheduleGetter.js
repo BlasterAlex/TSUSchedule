@@ -217,18 +217,18 @@ module.exports = function (param, callback) {
             return array;
           }, pairNumbers);
 
+          // Работа с полученным расписанием
+          if (chatId == adminId) {
+            bot.sendPhoto(chatId, await page.screenshot(), {}, {
+              filename: 'schedule',
+              contentType: 'image/png',
+            });
+            let bodyHTML = await page.evaluate(() => document.body.innerHTML);
+            bot.sendDocument(chatId, Buffer.from(bodyHTML, 'utf8'), { fileName: 'index.html' });
+          }
+
           resolve(schedule);
 
-          // Работа с полученным расписанием
-          // if (chatId == adminId) {
-          //   bot.sendPhoto(chatId, await page.screenshot(), {}, {
-          //     filename: 'schedule',
-          //     contentType: 'image/png',
-          //   });
-          //   let bodyHTML = await page.evaluate(() => document.body.innerHTML);
-          //   bot.sendDocument(chatId, Buffer.from(bodyHTML, 'utf8'), { fileName: 'index.html' });
-          // } else
-          //   callback(schedule);
 
         } catch (err) {
           console.log(err);
@@ -352,7 +352,10 @@ module.exports = function (param, callback) {
   var rosdistant = () => {
     return new Promise(resolve => {
       checkLogIn().then((isLogIn) => {
-        if (isLogIn) getScheduleRosdistant(resolve);
+        if (isLogIn) checkLogIn().then((isLogIn) => {
+          if (isLogIn) getScheduleRosdistant(resolve);
+          else authorization(resolve);
+        });
         else authorization(resolve);
       });
     });
@@ -362,6 +365,7 @@ module.exports = function (param, callback) {
   (async function scheduleGetter() {
     let schTSU = await getSchedule();
     let schRos = await rosdistant();
+    let endMerge;
 
     for (let i = 0; i < schTSU.length; i++) {
       let found = schRos.find(el => el.date === schTSU[i].date);
@@ -375,10 +379,18 @@ module.exports = function (param, callback) {
             const schRosPair = schRos[schRosIndex].courses.indexOf(found);
             schRos[schRosIndex].courses[schRosPair].coursetype = pair.coursetype;
             schRos[schRosIndex].courses[schRosPair].time = pair.time;
-          } else
-            schRos[schRosIndex].courses.push(pair);
+          }
+          // else
+          // schRos[schRosIndex].courses.push(pair);
         }
-      }
+      } else
+        endMerge = i;
+    }
+
+    // Слияние таблиц
+    if (endMerge) {
+      let newSch = schTSU.slice(-endMerge);
+      schRos = newSch.concat(schRos);
     }
 
     callback(schRos);
