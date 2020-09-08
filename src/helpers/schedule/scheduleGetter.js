@@ -371,6 +371,14 @@ module.exports = function (param, callback) {
     for (let i = 0; i < schTSU.length; i++) {
       let found = schRos.find(el => el.date === schTSU[i].date);
       if (found) {
+
+        // Слияние таблиц
+        if (endMerge !== undefined && endMerge !== -1) {
+          let newSch = schTSU.slice(0, endMerge + 1);
+          schRos = newSch.concat(schRos);
+          endMerge = -1;
+        }
+
         const schRosIndex = schRos.indexOf(found);
         for (let j = 0; j < schTSU[i].courses.length; j++) {
           let pair = schTSU[i].courses[j];
@@ -384,14 +392,8 @@ module.exports = function (param, callback) {
           // else
           // schRos[schRosIndex].courses.push(pair);
         }
-      } else
+      } else if (endMerge !== -1)
         endMerge = i;
-    }
-
-    // Слияние таблиц
-    if (endMerge) {
-      let newSch = schTSU.slice(-endMerge);
-      schRos = newSch.concat(schRos);
     }
 
     callback(schRos);

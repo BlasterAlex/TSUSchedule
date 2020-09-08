@@ -49,7 +49,7 @@ module.exports = function (param) {
 
       message += coursetype.length ? (coursetype + '\n') : '';
       message += course.teacher.length ? ('_' + course.teacher + '_\n') : '';
-      message += course.link.length ? (course.link + '\n') : '';
+      message += course.link && course.link.length ? (course.link + '\n') : '';
       message += course.audience.length ? (course.audience + '\n') : '';
       message += '\n';
     });
