@@ -53,13 +53,6 @@ var registrate = function (bot, chatId, user) {
     else
       bot.sendMessage(chatId, 'Данные успешно добавлены');
 
-    // Удаление сохраненной страницы браузера
-    const userPage = userPages.find(o => o.chatId == chatId);
-    if (userPage) {
-      userPage.page.browser().close();
-      userPages.splice(userPages.indexOf(userPages), 1);
-    }
-
     require('../../commands/user/whoami')(bot, chatId);
   });
 

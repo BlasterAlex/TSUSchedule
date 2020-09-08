@@ -25,10 +25,21 @@ module.exports = function (param, callback) {
 
   // Проверка статуса авторизации на Росдистант
   async function checkLogIn() {
-    const user = userPages.find(o => o.chatId === chatId);
-    if (!user) return false;
-    await user.page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] });
-    return await user.page.evaluate(() => {
+
+    // Проверить на наличие сохраненной страницы
+    const users = userPages.filter(o => o.chatId === chatId);
+    if (!users.length) return false;
+
+    // Закрыть дубликать страницы
+    while (users.length > 1) {
+      users[0].page.browser().close();
+      userPages.splice(userPages.indexOf(users[0]), 1);
+      users.splice(0, 1);
+    }
+
+    // Проверить статус пользователя в системе
+    await users[0].page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] });
+    return await users[0].page.evaluate(() => {
       return ((!document.querySelector('.loginform') && document.querySelector('#page'))
         || document.querySelector('.loginerrors')) ? true : false;
     });
@@ -45,45 +56,41 @@ module.exports = function (param, callback) {
             fs.readFileSync('data/messages/registration.txt'), { parse_mode: 'markdown' });
 
         // Поиск нужного файла с расписанием
-        let URL = config.scheduleURL;
-        request(URL, function (err, res) {
-
+        request(config.scheduleURL, function (err, res) {
           if (err) throw err;
           var $ = cheerio.load(res.body);
-          let startSearching = false;
-          let stopSearching = false;
-          let link;
 
+          // Поиск ссылки на расписание
+          let link;
+          let startSearching = false;
           $('.container .row .col-lg-8 .card-body p').each(function () {
-            if (!stopSearching) {
-              let name = $(this).text().trim();
-              if (name.includes(week + ' неделя'))
-                startSearching = true;
-              else if (startSearching)
-                if (name) {
-                  if (name === inst)
-                    link = $(this).find('a').attr('href');
-                } else
-                  stopSearching = true;
+            let name = $(this).text().trim();
+            if (name.includes(week + ' неделя'))
+              startSearching = true;
+            else if (startSearching) {
+              if (!name || !name.length)
+                return false;
+              if (name === inst) {
+                link = $(this).find('a').attr('href');
+                return false;
+              }
             }
           });
 
           // Нет расписания
-          if (!link) return resolve([]);
+          if (!link) {
+            console.error('Не найдена ссылка на сайте ТГУ');
+            return resolve([]);
+          }
 
           // Загрузка файла расписания
-          const url = 'https://www.tltsu.ru' + encodeURI(link).replace(/%25/g, '%');
-          request(url, { encoding: null }, function (err, res, data) {
+          const URL = 'https://www.tltsu.ru' + encodeURI(link).replace(/%25/g, '%');
+          request(URL, { encoding: null }, function (err, res, data) {
 
             // Ошибка загрузки файла
             if (err || res.statusCode !== 200) {
-              console.log(err);
-              return bot.sendMessage(chatId, 'Невозможно получить данные для:\n' +
-                '*Институт*: ' + inst +
-                '\n*Группа*: ' + group +
-                '\n*День*: ' + moment(today).locale('ru').format('dd, DD MMM') + ', неделя ' + week, {
-                parse_mode: 'markdown'
-              });
+              console.error(err);
+              return resolve([]);
             }
 
             // Формируемая таблица
@@ -100,45 +107,45 @@ module.exports = function (param, callback) {
               if (!stopSearching) {
                 $sheet = cheerio.load(XLSX.utils.sheet_to_html(wb.Sheets[course]));
                 $sheet('body table tbody tr').each(function () { // каждая строка
-                  if (!stopSearching) {
-                    const text = $sheet(this).text();
-                    if (text === group)
-                      startSearching = true;
-                    else if (startSearching) {
-                      if (text.match(/^\d-я/i)) {
-                        let pairNum;
-                        let dayNum = 0;
+                  const text = $sheet(this).text();
+                  if (text === group)
+                    startSearching = true;
+                  else if (startSearching) {
+                    if (text.match(/^\d-я/i)) {
+                      let pairNum;
+                      let dayNum = 0;
 
-                        $(this).find('td').each(function () { // каждый столбец
+                      $(this).find('td').each(function () { // каждый столбец
 
-                          let myhtml = $(this).html().replace(/<br\s?\/?>/gi, '\n'); // заменяет <br> на \n
-                          let text = he.decode(myhtml);
+                        let myhtml = $(this).html().replace(/<br\s?\/?>/gi, '\n'); // заменяет <br> на \n
+                        let text = he.decode(myhtml);
 
-                          let match = $(this).text().match(/(\d)-я/);
-                          if (match) { // это номер пары
-                            if (!pairNum)
-                              pairNum = match[1];
-                          } else {  // это предмет
-                            if (text && dayNum < 6) {
-                              var timeMatch = text.match(/\[(.*)\]/i);
-                              var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)/i);
-                              var teaher = text.match(/([А-Я][А-Яа-я]+\s[А-Я]\.[А-Я]\.)\n/i);
-                              var audience = text.match(/([А-Я][А-Яа-я]+(-\d+)*)\n/i);
-                              var course = {
-                                'pairNum': parseInt(pairNum),
-                                'time': timeMatch && timeMatch.length > 1 ? timeMatch[1] : '',
-                                'coursename': courseName && courseName.length > 1 ? courseName[1] : '',
-                                'coursetype': courseName && courseName.length > 2 ? courseName[2] : '',
-                                'teacher': teaher && teaher.length > 1 ? teaher[1] : '',
-                                'audience': audience && audience.length > 1 ? audience[1] : ''
-                              };
-                              schedule[dayNum].courses.push(course);
-                            }
-                            dayNum++;
+                        let match = $(this).text().match(/(\d)-я/);
+                        if (match) { // это номер пары
+                          if (!pairNum)
+                            pairNum = match[1];
+                        } else {  // это предмет
+                          if (text && dayNum < 6) {
+                            var timeMatch = text.match(/\[(.*)\]/i);
+                            var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)/i);
+                            var teaher = text.match(/([А-Я][А-Яа-я]+\s[А-Я]\.[А-Я]\.)\n/i);
+                            var audience = text.match(/([А-Я][А-Яа-я]+(-\d+)*)\n/i);
+                            var course = {
+                              'pairNum': parseInt(pairNum),
+                              'time': timeMatch && timeMatch.length > 1 ? timeMatch[1] : '',
+                              'coursename': courseName && courseName.length > 1 ? courseName[1] : '',
+                              'coursetype': courseName && courseName.length > 2 ? courseName[2] : '',
+                              'teacher': teaher && teaher.length > 1 ? teaher[1] : '',
+                              'audience': audience && audience.length > 1 ? audience[1] : ''
+                            };
+                            schedule[dayNum].courses.push(course);
                           }
-                        });
-                      } else
-                        stopSearching = true;
+                          dayNum++;
+                        }
+                      });
+                    } else {
+                      stopSearching = true;
+                      return false;
                     }
                   }
                 });
@@ -365,8 +372,8 @@ module.exports = function (param, callback) {
   (async function scheduleGetter() {
     let schTSU = await getSchedule();
     let schRos = await rosdistant();
-    let endMerge;
 
+    let endMerge;
     for (let i = 0; i < schTSU.length; i++) {
       let found = schRos.find(el => el.date === schTSU[i].date);
       if (found) {
@@ -378,6 +385,7 @@ module.exports = function (param, callback) {
           endMerge = -1;
         }
 
+        // Добавление инфы в таблицу с Росдистанта
         const schRosIndex = schRos.indexOf(found);
         for (let j = 0; j < schTSU[i].courses.length; j++) {
           let pair = schTSU[i].courses[j];
@@ -388,12 +396,18 @@ module.exports = function (param, callback) {
             schRos[schRosIndex].courses[schRosPair].coursetype = pair.coursetype;
             schRos[schRosIndex].courses[schRosPair].time = pair.time;
           }
-          // else
-          // schRos[schRosIndex].courses.push(pair);
         }
+
       } else if (endMerge !== -1)
         endMerge = i;
     }
+
+    // Незавершенное слияние
+    // if (endMerge !== undefined && endMerge !== -1) {
+    //   let newSch = schTSU.slice(0, endMerge + 1);
+    //   schRos = newSch.concat(schRos);
+    //   endMerge = -1;
+    // }
 
     callback(schRos);
   })();

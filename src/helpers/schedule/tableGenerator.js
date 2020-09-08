@@ -8,6 +8,7 @@ module.exports = function (param) {
   var schedule = param.schedule;
 
   // Формирование html
+  var tableIsEmpty = true;
   $ = cheerio.load(
     '<html>' +
     '<head>' +
@@ -39,34 +40,28 @@ module.exports = function (param) {
   // Отбор дней текущей недели
   let coursesOnWeek = [];
   days.forEach(function (day) {
-    let found = schedule.filter(d => d.date === day.format('DD.MM.YYYY'));
-    coursesOnWeek.push(found.length ? found[0].courses : []);
+    let found = schedule.find(d => d.date == day.format('DD.MM.YYYY'));
+    coursesOnWeek.push(found ? found.courses : []);
   });
   if (!coursesOnWeek[coursesOnWeek.length - 1].length) coursesOnWeek.pop();
 
   // Заголовок таблицы
   for (let i = 0; i < coursesOnWeek.length; ++i) {
-
     // Выделение текущего дня
-    let background = !param.withoutDay && today.day() === (i + 1) ? 'background: rgba(241, 242, 194, 0.4)' : '';
-
+    const background = !param.withoutDay && today.day() === (i + 1) ? 'background: rgba(241, 242, 194, 0.4)' : '';
     $('body table tbody #table-header').append(
       '<td style="width: 200px; text-align: center; ' + background + '">' +
       days[i].format('dddd, DD MMMM').capitalize() +
       '</td>');
-
   }
   $('body table tbody #table-header').append(
     '<td style="background: #ebe2be; width:1px; white-space:nowrap; text-align: center;">Пара</td>');
 
-  // Определение высоты таблицы
-  var maxPairNum = 0;
+  // Определение максимального количества пар
+  let maxPairNum = 0;
   coursesOnWeek.forEach(function (dayCourses) {
-    if (dayCourses.length) {
-      let lastPairNum = dayCourses[dayCourses.length - 1].pairNum;
-      if (maxPairNum < lastPairNum)
-        maxPairNum = lastPairNum;
-    }
+    if (dayCourses.length)
+      maxPairNum = Math.max(maxPairNum, dayCourses[dayCourses.length - 1].pairNum);
   });
 
   // Строки таблицы
@@ -74,7 +69,6 @@ module.exports = function (param) {
 
     let lessonId = 'table_lesson_' + (i + 1);
     $('body table tbody').append('<tr id="' + lessonId + '">');
-
     $('body table tbody #' + lessonId).append('<td style="background: #f5f2e6; text-align: center;">' + (i + 1) + '-я</td>');
 
     // Столбцы таблицы
@@ -89,22 +83,24 @@ module.exports = function (param) {
 
       // Получение информации о текущей паре
       if (coursesOnWeek[j].length) {
-        let found = coursesOnWeek[j].filter(course => course.pairNum === (i + 1));
-        if (found.length) {
+        let found = coursesOnWeek[j].find(course => course.pairNum === (i + 1));
+        if (found) {
+
           // Разбор расписания на день
-          let course = found[0];
+          let course = found;
           emptyLine = false;
 
-          // Название курса
-          let coursename = course.coursename + (course.coursetype && course.coursetype.length ? (' (' + course.coursetype + ')') : '');
+          // Неопределенный тип курса
+          if (!course.coursetype || !course.coursetype.length)
+            text += '<span style="color: #2b2a2a; font-weight: bold">' + course.coursename + '</span><br>';
 
           // Практики и лабы
-          if (!course.coursetype || !course.coursetype.length || course.coursetype === 'Пр' || course.coursetype === 'Лаб')
-            text += '<span style="color: #2e58ff; font-weight: bold">' + coursename + '</span><br>';
+          else if (course.coursetype === 'Пр' || course.coursetype === 'Лаб')
+            text += '<span style="color: #2e58ff; font-weight: bold">' + course.coursename + ' (' + course.coursetype + ')' + '</span><br>';
 
           // Лекции
           else if (course.coursetype === 'Лек')
-            text += '<span style="color: #ff583b; font-weight: bold">' + coursename + '</span><br>';
+            text += '<span style="color: #ff583b; font-weight: bold">' + course.coursename + ' (' + course.coursetype + ')' + '</span><br>';
 
           // Имя преподавателя
           text += course.teacher.length ? ('<span style="font-weight: bold">' + course.teacher + '</span><br>') : '<br>';
@@ -130,7 +126,9 @@ module.exports = function (param) {
 
     if (emptyLine)
       $('body table tbody #' + lessonId).remove();
+    else
+      tableIsEmpty = false;
   }
 
-  return $.html();
+  return !tableIsEmpty ? $.html() : false;
 };
