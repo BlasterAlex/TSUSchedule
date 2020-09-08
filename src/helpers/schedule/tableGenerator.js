@@ -96,10 +96,10 @@ module.exports = function (param) {
           emptyLine = false;
 
           // Название курса
-          let coursename = course.coursename + (course.coursetype.length ? (' (' + course.coursetype + ')') : '');
+          let coursename = course.coursename + (course.coursetype && course.coursetype.length ? (' (' + course.coursetype + ')') : '');
 
           // Практики и лабы
-          if (!course.coursetype.length || course.coursetype === 'Пр' || course.coursetype === 'Лаб')
+          if (!course.coursetype || !course.coursetype.length || course.coursetype === 'Пр' || course.coursetype === 'Лаб')
             text += '<span style="color: #2e58ff; font-weight: bold">' + coursename + '</span><br>';
 
           // Лекции
