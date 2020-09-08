@@ -9,6 +9,7 @@ const puppeteer = require('puppeteer'); // for working with a virtual browser
 const config = require('../../../config/config.json');
 const userPages = require('../auth').userPages;
 const InstituteRepository = require('../../repositories/InstituteRepository');
+const adminId = process.env.ADMIN_CHAT_ID || require('../../../config/private.json').ADMIN_CHAT_ID;
 
 module.exports = function (param, callback) {
 
