@@ -69,7 +69,7 @@ module.exports = function (param, callback) {
           });
 
           // Нет расписания
-          if (!link) resolve([]);
+          if (!link) return resolve([]);
 
           // Загрузка файла расписания
           const url = 'https://www.tltsu.ru' + encodeURI(link).replace(/%25/g, '%');
@@ -229,7 +229,6 @@ module.exports = function (param, callback) {
           }
 
           resolve(schedule);
-
 
         } catch (err) {
           console.log(err);

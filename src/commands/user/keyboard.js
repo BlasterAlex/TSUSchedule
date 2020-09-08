@@ -1,5 +1,4 @@
 const fs = require('fs');
-const config = JSON.parse(fs.readFileSync('config/config.json'));
 
 module.exports = function (bot, msg) {
   let chatId = msg.chat.id;
@@ -13,25 +12,14 @@ module.exports = function (bot, msg) {
 
       var firstLoad, secondLoad;
 
-      if (config.rosdistant) {
-        firstLoad = [
-          { text: 'Сегодня', callback_data: '/today' },
-          { text: 'Завтра', callback_data: '/tomorrow' },
-        ];
-        secondLoad = [
-          { text: 'Неделя', callback_data: '/week' },
-          { text: 'Выбрать день', callback_data: '/selectday' },
-        ];
-      } else {
-        firstLoad = [
-          { text: 'Сегодня', callback_data: '/today' },
-          { text: 'Завтра', callback_data: '/tomorrow' },
-        ];
-        secondLoad = [
-          { text: 'Неделя', callback_data: '/week' },
-          { text: 'След неделя', callback_data: '/nextweek' },
-        ];
-      }
+      firstLoad = [
+        { text: 'Сегодня', callback_data: '/today' },
+        { text: 'Завтра', callback_data: '/tomorrow' },
+      ];
+      secondLoad = [
+        { text: 'Неделя', callback_data: '/week' },
+        { text: 'Выбрать день', callback_data: '/selectday' },
+      ];
 
       bot.sendMessage(
         msg.chat.id,
