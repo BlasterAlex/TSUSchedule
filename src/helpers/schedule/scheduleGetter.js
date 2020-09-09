@@ -7,9 +7,33 @@ const moment = require('moment-timezone'); // for working with dates
 const puppeteer = require('puppeteer'); // for working with a virtual browser
 
 const config = require('../../../config/config.json');
-const userPages = require('../auth').userPages;
 const InstituteRepository = require('../../repositories/InstituteRepository');
 const adminId = process.env.ADMIN_CHAT_ID || require('../../../config/private.json').ADMIN_CHAT_ID;
+
+// Массив открытых страниц пользователей
+var userPages = [];
+
+// Браузер для работы с Росдистант
+var browser;
+
+// Запуск браузера
+const launchBrowser = async () => {
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      defaultViewport: null,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox'
+      ]
+    });
+    browser.on('disconnected', launchBrowser);
+    console.log('Rosdistant browser has been successfully launched');
+  } catch (err) {
+    console.error(err);
+  }
+};
+launchBrowser();
 
 module.exports = function (param, callback) {
 
@@ -32,7 +56,7 @@ module.exports = function (param, callback) {
 
     // Закрыть дубликать страницы
     while (users.length > 1) {
-      users[0].page.browser().close();
+      users[0].page.close();
       userPages.splice(userPages.indexOf(users[0]), 1);
       users.splice(0, 1);
     }
@@ -43,6 +67,7 @@ module.exports = function (param, callback) {
       return ((!document.querySelector('.loginform') && document.querySelector('#page'))
         || document.querySelector('.loginerrors')) ? true : false;
     });
+
   }
 
   // Получение расписания с сайта ТГУ
@@ -252,101 +277,83 @@ module.exports = function (param, callback) {
       const messageId = sender.message_id;
       require('../auth').getRosdistant(bot, chatId, function (user) {
         (async () => {
+
+          // Проверка на наличие открытой страницы
+          const userPage = userPages.find(o => o.chatId == chatId);
+          if (userPage) {
+            userPage.page.close();
+            userPages.splice(userPages.indexOf(userPages), 1);
+          }
+
           try {
 
-            // Проверка на наличие открытой страницы
-            const userPage = userPages.find(o => o.chatId == chatId);
-            if (userPage) {
-              userPage.page.browser().close();
-              userPages.splice(userPages.indexOf(userPages), 1);
-            }
+            // Создание страницы с расписанием
+            const page = await browser.newPage();
+            await page.setViewport({
+              width: 1920,
+              height: 1080,
+            });
+            await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
 
-            // Запуск браузера
-            const browser = await puppeteer.launch({
-              headless: true,
-              defaultViewport: null,
-              args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox'
-              ]
+            // Авторизация пользователя в системе
+            await page.evaluate(function (login, password) {
+              let inputs = document.querySelector('.loginform');
+              inputs.querySelector('#username').value = login;
+              inputs.querySelector('#password').value = password;
+              document.querySelector('#loginbtn').click();
+            }, user.login, user.password);
+            await page.waitForNavigation();
+
+            // Ожидание завершения авторизации
+            await new Promise((resolve) => {
+              const interval = async function () {
+                try {
+                  const successful = await page.evaluate(() => {
+                    return (!document.querySelector('.loginform') && document.querySelector('#page'))
+                      || document.querySelector('.loginerrors');
+                  });
+                  if (successful)
+                    resolve();
+                  else
+                    setTimeout(interval, 2000);
+                } catch (err) {
+                  return bot.sendMessage(chatId,
+                    'Ошибка получения расписания с Росдистант\nПопробуйте еще раз',
+                    { parse_mode: 'markdown' });
+                }
+              };
+              setTimeout(interval, 2000);
             });
 
-            try {
+            // Проверка статуса авторизации
+            const state = await page.evaluate(() => {
+              let error = document.querySelector('.loginerrors .error');
+              if (error && error.innerText === 'Неверный логин или пароль, попробуйте заново.')
+                return 'wrong user data';
+              else return 'ok';
+            });
 
-              // Создание страницы с расписанием
-              const page = await browser.newPage();
-              await page.setViewport({
-                width: 1920,
-                height: 1080,
-              });
-              await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
-
-              // Авторизация пользователя в системе
-              await page.evaluate(function (login, password) {
-                let inputs = document.querySelector('.loginform');
-                inputs.querySelector('#username').value = login;
-                inputs.querySelector('#password').value = password;
-                document.querySelector('#loginbtn').click();
-              }, user.login, user.password);
-              await page.waitForNavigation();
-
-              // Ожидание завершения авторизации
-              await new Promise((resolve) => {
-                const interval = async function () {
-                  try {
-                    const successful = await page.evaluate(() => {
-                      return (!document.querySelector('.loginform') && document.querySelector('#page'))
-                        || document.querySelector('.loginerrors');
-                    });
-                    if (successful)
-                      resolve();
-                    else
-                      setTimeout(interval, 2000);
-                  } catch (err) {
-                    return bot.sendMessage(chatId,
-                      'Ошибка получения расписания с Росдистант\nПопробуйте еще раз',
-                      { parse_mode: 'markdown' });
-                  }
-                };
-                setTimeout(interval, 2000);
-              });
-
-              // Проверка статуса авторизации
-              const state = await page.evaluate(() => {
-                let error = document.querySelector('.loginerrors .error');
-                if (error && error.innerText === 'Неверный логин или пароль, попробуйте заново.')
-                  return 'wrong user data';
-                else return 'ok';
-              });
-
-              // Ошибка авторизации
-              switch (state) {
-                case 'wrong user data':
-                  return bot.sendMessage(chatId,
-                    'Неправильные данные для входа:\n' +
-                    'Логин:  *' + user.login + '*\n' +
-                    'Пароль: ' + '/showpassword',
-                    { parse_mode: 'markdown' });
-              }
-
-              // Кэширование страницы
-              userPages.push({ 'chatId': chatId, 'page': page });
-
-              // Получение расписания с сайта
-              getScheduleRosdistant(resolve);
-
-            } catch (err) {
-              return bot.sendMessage(chatId,
-                'Ошибка авторизации:\n' + err.message, { parse_mode: 'markdown' });
-            } finally {
-              bot.deleteMessage(chatId, messageId);
+            // Ошибка авторизации
+            switch (state) {
+              case 'wrong user data':
+                return bot.sendMessage(chatId,
+                  'Неправильные данные для входа:\n' +
+                  'Логин:  *' + user.login + '*\n' +
+                  'Пароль: ' + '/showpassword',
+                  { parse_mode: 'markdown' });
             }
 
+            // Кэширование страницы
+            userPages.push({ 'chatId': chatId, 'page': page });
+
+            // Получение расписания с сайта
+            getScheduleRosdistant(resolve);
+
           } catch (err) {
-            console.log(err);
             return bot.sendMessage(chatId,
-              'Не удалось запустить браузер',
-              { parse_mode: 'markdown' });
+              'Ошибка авторизации:\n' + err.message, { parse_mode: 'markdown' });
+          } finally {
+            bot.deleteMessage(chatId, messageId);
           }
 
         })();
@@ -403,11 +410,10 @@ module.exports = function (param, callback) {
     }
 
     // Незавершенное слияние
-    // if (endMerge !== undefined && endMerge !== -1) {
-    //   let newSch = schTSU.slice(0, endMerge + 1);
-    //   schRos = newSch.concat(schRos);
-    //   endMerge = -1;
-    // }
+    if (endMerge !== undefined && endMerge !== -1) {
+      let newSch = schTSU.slice(0, endMerge + 1);
+      schRos = newSch.concat(schRos);
+    }
 
     callback(schRos);
   })();

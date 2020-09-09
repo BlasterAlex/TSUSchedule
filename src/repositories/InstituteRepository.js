@@ -12,13 +12,12 @@ module.exports.findByName = function (name, callback) {
   Institute.find({ name: name }, function (err, inst) {
     if (err)
       return console.error(err);
-
     callback(inst);
   });
 };
 
 module.exports.updateGroups = function (name, groups) {
-  Institute.findOneAndUpdate({ name: name, groups: groups }, {}, { upsert: true }, function (err, res) {
+  Institute.findOneAndUpdate({ name: name, groups: groups }, {}, { upsert: true }, function (err) {
     if (err) return console.error(err);
   });
 };
@@ -35,4 +34,4 @@ module.exports.findByGroup = function (group, callback) {
       }
     })).then(callback);
   });
-}
+};

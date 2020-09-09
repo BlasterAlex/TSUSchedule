@@ -7,9 +7,6 @@ const ENCRYPTION_KEY = // Must be 256 bits (32 characters)
 const User = require('../../models/User');
 const UserRepository = require('../../repositories/UserRepository');
 
-// Массив открытых страниц пользователей
-var userPages = [];
-
 function encrypt(password) {
   let iv = crypto.randomBytes(16);
   let cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
@@ -88,4 +85,4 @@ var showPassword = function (bot, chatId) {
   });
 };
 
-module.exports = { registrate, getRosdistant, showPassword, userPages }; 
+module.exports = { registrate, getRosdistant, showPassword }; 
