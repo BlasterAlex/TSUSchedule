@@ -20,7 +20,7 @@ module.exports = function (param) {
 
   } else {
 
-    if (!param.schedule.length)
+    if (!param.schedule.length || !param.schedule[0].courses.length)
       return param.bot.sendMessage(param.chatId, message +
         'Пустой день', {
         parse_mode: 'markdown'

@@ -79,9 +79,7 @@ var run = function (chatId, commands) {
           bot: bot,
           chatId: chatId,
           today: today,
-          schedule: !config.rosdistant ?
-            schedule[today.day() - 1] :
-            schedule.filter(day => day.date === today.format('DD.MM.YYYY'))
+          schedule: schedule[today.day() - 1]
         });
 
       // Требуется расписание на неделю
