@@ -79,7 +79,7 @@ var run = function (chatId, commands) {
           bot: bot,
           chatId: chatId,
           today: today,
-          schedule: schedule[today.day() - 1]
+          schedule: schedule.filter(day => day.date === today.format('DD.MM.YYYY'))
         });
 
       // Требуется расписание на неделю
