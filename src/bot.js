@@ -65,10 +65,14 @@ var run = function (chatId, commands) {
         parse_mode: 'markdown'
       });
 
+    if (commands.anotherGroup)
+      user[0].group = commands.anotherGroup;
+
     // Формирование объекта для отправки
-    let data = { bot: bot, user: user[0], };
+    let data = { bot: bot, user: user[0] };
     data.today = today;
     data.week = today.week() - academYBegin.week() + 1;
+    data.anotherGroup = commands.anotherGroup;
 
     // Получение расписания с сайта
     require('./helpers/schedule/scheduleGetter')(data, function (schedule) {
@@ -86,9 +90,9 @@ var run = function (chatId, commands) {
       require('./commands/user/getOneWeek')({
         bot: bot,
         chatId: chatId,
+        user: user[0],
         today: today,
         withoutDay: commands.withoutDay,
-        user: user[0],
         schedule: schedule
       });
 

@@ -86,6 +86,7 @@ module.exports = function (param) {
           }
 
         } catch (err) {
+          console.error(err);
           bot.deleteMessage(chatId, messageId);
           return bot.sendMessage(chatId,
             'Не удалось запустить браузер',
