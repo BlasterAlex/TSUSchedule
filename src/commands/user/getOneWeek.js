@@ -4,16 +4,16 @@ const puppeteer = require('puppeteer'); // for screenshotting html table
 module.exports = function (param) {
 
   var bot = param.bot;
-  const today = param.today;
   const chatId = param.chatId;
   const schedule = param.schedule;
+  const today = moment(param.today).startOf('week').isoWeekday(1);
 
   let dates = moment(today).day(1).format('DD MMMM') + ' - ' + moment(today).day(6).format('DD MMMM');
   bot.sendMessage(chatId, 'Формирую расписание на \n' + '_' + dates + '_', { parse_mode: 'markdown' })
     .then(function (sender) {
       const messageId = sender.message_id;
 
-      let html = require('../../helpers/schedule/tableGenerator')({
+      const html = require('../../helpers/schedule/tableGenerator')({
         today: today,
         withoutDay: param.withoutDay,
         user: param.user,

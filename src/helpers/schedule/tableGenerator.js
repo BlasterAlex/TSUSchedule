@@ -3,9 +3,9 @@ const moment = require('moment-timezone'); // for working with dates
 
 module.exports = function (param) {
 
-  var today = param.today;
-  var user = param.user;
-  var schedule = param.schedule;
+  const user = param.user;
+  const today = param.today;
+  const schedule = param.schedule;
 
   // Формирование html
   var tableIsEmpty = true;

@@ -363,7 +363,7 @@ module.exports = function (param, callback) {
   var mergeSchedules = (schTSU, schRos) => {
 
     let endMerge;
-    for (let i = 0; i < schTSU.length; i++) {
+    for (let i = 0; i < schTSU.length; i++)
       if (schTSU[i].courses.length) {
         let found = schRos.find(el => el.date === schTSU[i].date);
         if (found) {
@@ -391,7 +391,6 @@ module.exports = function (param, callback) {
         } else if (endMerge !== -1)
           endMerge = i;
       }
-    }
 
     // Незавершенное слияние
     if (endMerge !== undefined && endMerge !== -1) {

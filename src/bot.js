@@ -28,7 +28,7 @@ bot.onText(/(.+)/, (msg) => {
   const chatId = msg.chat.id;
 
   // Разбор команд
-  var commands = require('./helpers/parsing/text')(bot, chatId, msg);
+  const commands = require('./helpers/parsing/text')(bot, chatId, msg);
   if (commands.exit) return;
 
   // Запуск основного алгоритма
@@ -46,8 +46,16 @@ bot.on('polling_error', (err) => console.log(err));
 // Запуск основного алгоритма
 var run = function (chatId, commands) {
 
-  // Сдвиг текущего дня
+  // Сегодня
   var today = moment().tz(config.timeZone, true).locale(config.locale);
+
+  // Сдвиг текущей недели
+  if (commands.onWeek && (today.day() === 6 || today.day() === 7)) {
+    commands.fromNow = commands.fromNow === 0 ? commands.fromNow + 2 : commands.fromNow;
+    commands.withoutDay = true;
+  }
+
+  // Сдвиг текущего дня
   today.add(commands.fromNow, 'days');
 
   // Начало учебного года
