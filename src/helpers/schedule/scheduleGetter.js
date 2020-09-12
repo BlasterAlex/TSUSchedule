@@ -32,8 +32,10 @@ module.exports = function (param, callback) {
     if (userCookies.has(chatId))
       await page.setCookie(...userCookies.get(chatId));
 
+    // Перейти на страницу расписания
+    await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
+
     // Проверить статус пользователя в системе
-    await page.reload({ waitUntil: ['networkidle0', 'domcontentloaded'] });
     return await page.evaluate(() => {
       return ((!document.querySelector('.loginform') && document.querySelector('#page'))
         || document.querySelector('.loginerrors')) ? true : false;
@@ -220,7 +222,6 @@ module.exports = function (param, callback) {
         });
         page = await browser.newPage();
         await page.setViewport({ width: 1280, height: 926 });
-        await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
       })()
         .then(() => {
           checkLogIn().then((isLogIn) => {
@@ -360,33 +361,36 @@ module.exports = function (param, callback) {
 
   // Слияние двух таблиц в одну
   var mergeSchedules = (schTSU, schRos) => {
+
     let endMerge;
     for (let i = 0; i < schTSU.length; i++) {
-      let found = schRos.find(el => el.date === schTSU[i].date);
-      if (found) {
+      if (schTSU[i].courses.length) {
+        let found = schRos.find(el => el.date === schTSU[i].date);
+        if (found) {
 
-        // Слияние таблиц
-        if (endMerge !== undefined && endMerge !== -1) {
-          let newSch = schTSU.slice(0, endMerge + 1);
-          schRos = newSch.concat(schRos);
-          endMerge = -1;
-        }
-
-        // Добавление инфы в таблицу с Росдистанта
-        const schRosIndex = schRos.indexOf(found);
-        for (let j = 0; j < schTSU[i].courses.length; j++) {
-          let pair = schTSU[i].courses[j];
-          let found = schRos[schRosIndex].courses
-            .find(el => el.pairNum === pair.pairNum);
-          if (found) {
-            const schRosPair = schRos[schRosIndex].courses.indexOf(found);
-            schRos[schRosIndex].courses[schRosPair].coursetype = pair.coursetype;
-            schRos[schRosIndex].courses[schRosPair].time = pair.time;
+          // Слияние таблиц
+          if (endMerge !== undefined && endMerge !== -1) {
+            let newSch = schTSU.slice(0, endMerge + 1);
+            schRos = newSch.concat(schRos);
+            endMerge = -1; // завершение поиска
           }
-        }
 
-      } else if (endMerge !== -1)
-        endMerge = i;
+          // Добавление инфы в таблицу с Росдистанта
+          const schRosIndex = schRos.indexOf(found);
+          for (let j = 0; j < schTSU[i].courses.length; j++) {
+            let pair = schTSU[i].courses[j];
+            let found = schRos[schRosIndex].courses
+              .find(el => el.pairNum === pair.pairNum);
+            if (found) {
+              const schRosPair = schRos[schRosIndex].courses.indexOf(found);
+              schRos[schRosIndex].courses[schRosPair].coursetype = pair.coursetype;
+              schRos[schRosIndex].courses[schRosPair].time = pair.time;
+            }
+          }
+
+        } else if (endMerge !== -1)
+          endMerge = i;
+      }
     }
 
     // Незавершенное слияние
@@ -400,9 +404,9 @@ module.exports = function (param, callback) {
 
   // Асинхронное получение расписания с Росдистант и сайта ТГУ
   var scheduleGetter = async () => {
-    let schTSU = await getSchedule();
+    const schTSU = await getSchedule();
     if (!anotherGroup) {
-      let schRos = await rosdistant();
+      const schRos = await rosdistant();
       return callback(mergeSchedules(schTSU, schRos));
     }
     callback(schTSU);
