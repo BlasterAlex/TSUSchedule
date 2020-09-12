@@ -329,7 +329,7 @@ module.exports = function (param, callback) {
                             var timeMatch = text.match(/\[(.*)\]/i);
                             var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)/i);
                             var teaher = text.match(/([А-Я][А-Яа-я]+\s[А-Я]\.[А-Я]\.)\n/i);
-                            var audience = text.match(/([А-Я][А-Яа-я]+(-\d+)*)\n/i);
+                            var audience = text.match(/([А-Я][А-Яа-я]*(-\d+)*)\n/i);
                             var course = {
                               'pairNum': parseInt(pairNum),
                               'time': timeMatch && timeMatch.length > 1 ? timeMatch[1] : '',
