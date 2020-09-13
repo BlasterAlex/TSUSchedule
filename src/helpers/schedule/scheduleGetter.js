@@ -37,8 +37,7 @@ module.exports = function (param, callback) {
 
     // Проверить статус пользователя в системе
     return await page.evaluate(() => {
-      return ((!document.querySelector('.loginform') && document.querySelector('#page'))
-        || document.querySelector('.loginerrors')) ? true : false;
+      return (!document.querySelector('.loginerrors')) ? true : false;
     });
   }
 
