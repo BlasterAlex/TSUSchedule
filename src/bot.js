@@ -50,7 +50,7 @@ var run = function (chatId, commands) {
   var today = moment().tz(config.timeZone, true).locale(config.locale);
 
   // Сдвиг текущей недели
-  if (commands.onWeek && (today.day() === 6 || today.day() === 7)) {
+  if (commands.onWeek && (today.day() === 6 || today.day() === 0)) {
     commands.fromNow = commands.fromNow === 0 ? commands.fromNow + 2 : commands.fromNow;
     commands.withoutDay = true;
   }
