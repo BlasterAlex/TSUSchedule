@@ -310,7 +310,7 @@ module.exports = function (param, callback) {
                   if (text === group)
                     startSearching = true;
                   else if (startSearching) {
-                    if (text.match(/^\d-я/i)) {
+                    if (text.match(/^\d-я/)) {
                       let pairNum;
                       let dayNum = 0;
 
@@ -325,10 +325,10 @@ module.exports = function (param, callback) {
                             pairNum = match[1];
                         } else {  // это предмет
                           if (text && dayNum < 6) {
-                            var timeMatch = text.match(/\[(.*)\]/i);
-                            var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)/i);
-                            var teaher = text.match(/([А-Я][А-Яа-я]+\s[А-Я]\.[А-Я]\.)\n/i);
-                            var audience = text.match(/([А-Я]+(-\d+)*)\n/i);
+                            var timeMatch = text.match(/\[(.*)\]/);
+                            var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)/);
+                            var teaher = text.match(/([А-Я][А-Яа-я]+\s[А-Я]\.[А-Я]\.)\n/);
+                            var audience = text.match(/([А-Я][А-Яа-я]*(-\d+)*)\n/);
                             var course = {
                               'pairNum': parseInt(pairNum),
                               'time': timeMatch && timeMatch.length > 1 ? timeMatch[1] : '',

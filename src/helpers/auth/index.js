@@ -33,7 +33,7 @@ function decrypt(password) {
 var registrate = function (bot, chatId, user) {
 
   // Проверка названия группы
-  if (user.group && !user.group.match(/^[А-Яа-я]+-\d{4}[а-я]*$/i))
+  if (user.group && !user.group.match(/^[А-Яа-я]+-\d{4}[а-я]*$/))
     return bot.sendMessage(chatId, fs.readFileSync('data/messages/groupFormat.txt'),
       { parse_mode: 'markdown' });
 

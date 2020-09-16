@@ -19,7 +19,7 @@ var updateGroupList = (url, name, callback) => {
       $sheet = cheerio.load(XLSX.utils.sheet_to_html(wb.Sheets[course]));
       $sheet('body table tbody tr').each(function () { // каждая строка
         const text = $sheet(this).text();
-        if (text.match(/^[А-Яа-я]+-\d{4}[а-я]*$/i))
+        if (text.match(/^[А-Яа-я]+-\d{4}[а-я]*$/))
           g.push(text);
       });
       groups.set(course.replace('.', ''), g);
