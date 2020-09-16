@@ -6,6 +6,7 @@ module.exports = function (param) {
   const user = param.user;
   const today = param.today;
   const schedule = param.schedule;
+  const dayOfWeek = moment(today).startOf('week').isoWeekday(1);
 
   // Формирование html
   var tableIsEmpty = true;
@@ -35,7 +36,7 @@ module.exports = function (param) {
   // Дни текущей недели
   let days = [];
   for (let i = 1; i <= 6; i++)
-    days.push(moment(today).day(i));
+    days.push(moment(dayOfWeek).day(i));
 
   // Отбор дней текущей недели
   let coursesOnWeek = [];

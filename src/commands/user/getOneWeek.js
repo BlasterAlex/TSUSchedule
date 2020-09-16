@@ -6,9 +6,10 @@ module.exports = function (param) {
   var bot = param.bot;
   const chatId = param.chatId;
   const schedule = param.schedule;
-  const today = moment(param.today).startOf('week').isoWeekday(1);
+  const today = param.today;
+  const dayOfWeek = moment(today).startOf('week').isoWeekday(1);
 
-  let dates = moment(today).day(1).format('DD MMMM') + ' - ' + moment(today).day(6).format('DD MMMM');
+  let dates = moment(dayOfWeek).day(1).format('DD MMMM') + ' - ' + moment(dayOfWeek).day(6).format('DD MMMM');
   bot.sendMessage(chatId, 'Формирую расписание на \n' + '_' + dates + '_', { parse_mode: 'markdown' })
     .then(function (sender) {
       const messageId = sender.message_id;
