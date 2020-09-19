@@ -79,7 +79,7 @@ var run = function (chatId, commands) {
     // Формирование объекта для отправки
     let data = { bot: bot, user: user[0] };
     data.today = today;
-    data.week = today.week() - academYBegin.week() + 1;
+    data.week = moment(today).startOf('week').isoWeekday(1).week() - academYBegin.week() + 1;
     data.anotherGroup = commands.anotherGroup;
 
     // Получение расписания с сайта

@@ -137,10 +137,10 @@ module.exports = function (param, callback) {
               // var mycourses = $(this).closest('.mycourses');
               // var content = $(this).find('div:nth-child(2)');
               // var datetime = $(this).find('div:nth-child(3)');
-                 const html = $(this).html();
+              const html = $(this).html();
+              const dateStr = html.match(/<b>(\d{1,2}:\d{2})\s+(\d{1,2}.\d{2}.\d{4})/);
 
-              if (content.length && datetime.length) {
-                const dateStr = html.match(/<b>(\d{1,2}:\d{2})\s+(\d{1,2}.\d{2}.\d{4})/);
+              if (dateStr && date.length) {
                 const time = dateStr ? dateStr[1] : '';
                 const date = dateStr ? dateStr[2] : '';
 
@@ -279,7 +279,7 @@ module.exports = function (param, callback) {
 
           // Нет расписания
           if (!link) {
-            console.error('Не найдена ссылка на сайте ТГУ');
+            console.error('Не найдена ссылка на сайте ТГУ (' + week + ' неделя)');
             return resolve([]);
           }
 
