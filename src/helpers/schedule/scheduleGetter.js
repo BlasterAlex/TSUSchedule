@@ -134,16 +134,17 @@ module.exports = function (param, callback) {
             var array = [];
 
             $('.mycourses .coursebox').each(function () {
-              var mycourses = $(this).closest('.mycourses');
-              var content = mycourses.find('div:nth-child(2)');
-              var datetime = mycourses.find('div:nth-child(3)');
+              // var mycourses = $(this).closest('.mycourses');
+              // var content = $(this).find('div:nth-child(2)');
+              // var datetime = $(this).find('div:nth-child(3)');
+                 const html = $(this).html();
 
               if (content.length && datetime.length) {
-                const dateStr = datetime.text().split(/\s+/);
-                const time = dateStr[0];
-                const date = dateStr[1];
+                const dateStr = html.match(/<b>(\d{1,2}:\d{2})\s+(\d{1,2}.\d{2}.\d{4})/)}
+                const time = dateStr ? dateStr[1] : '';
+                const date = dateStr ? dateStr[2] : '';
 
-                const html = content.html();
+                // const html = content.html();
                 const teacher = html.match(/<b>Преподаватель:<\/b>\s*([^<]+)<br>/);
                 const audience = html.match(/<b>Аудитория:<\/b>\s*([^<]+)<br>/);
                 const link = html.match(/<a href="(.*)">/);
