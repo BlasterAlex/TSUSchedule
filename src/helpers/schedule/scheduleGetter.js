@@ -140,7 +140,7 @@ module.exports = function (param, callback) {
               const html = $(this).html();
               const dateStr = html.match(/<b>(\d{1,2}:\d{2})\s+(\d{1,2}.\d{2}.\d{4})/);
 
-              if (dateStr && date.length) {
+              if (dateStr && dateStr.length) {
                 const time = dateStr ? dateStr[1] : '';
                 const date = dateStr ? dateStr[2] : '';
 
