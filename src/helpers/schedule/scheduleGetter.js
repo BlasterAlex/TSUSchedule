@@ -134,9 +134,6 @@ module.exports = function (param, callback) {
             var array = [];
 
             $('.mycourses .coursebox').each(function () {
-              // var mycourses = $(this).closest('.mycourses');
-              // var content = $(this).find('div:nth-child(2)');
-              // var datetime = $(this).find('div:nth-child(3)');
               const html = $(this).html();
               const dateStr = html.match(/<b>(\d{1,2}:\d{2})\s+(\d{1,2}.\d{2}.\d{4})/);
 
@@ -144,7 +141,6 @@ module.exports = function (param, callback) {
                 const time = dateStr ? dateStr[1] : '';
                 const date = dateStr ? dateStr[2] : '';
 
-                // const html = content.html();
                 const teacher = html.match(/<b>Преподаватель:<\/b>\s*([^<]+)<br>/);
                 const audience = html.match(/<b>Аудитория:<\/b>\s*([^<]+)<br>/);
                 const link = html.match(/<a href="(.*)">/);
@@ -164,7 +160,7 @@ module.exports = function (param, callback) {
                 var course = {
                   'pairNum': pairNum,
                   'time': time,
-                  'coursename': $(this).find('.coursename a').text(),
+                  'coursename': $(this).find('.coursename a').text().trim(),
                   'teacher': teacher ? teacher[1] : '',
                   'audience': audience ? audience[1] : '',
                   'link': link ? link[1] : '',
@@ -268,6 +264,7 @@ module.exports = function (param, callback) {
             if (name.includes(week + ' неделя'))
               startSearching = true;
             else if (startSearching) {
+              console.log(name);
               if (!name || !name.length)
                 return false;
               if (name === inst) {
