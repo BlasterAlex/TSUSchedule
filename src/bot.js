@@ -61,7 +61,8 @@ var run = function (chatId, commands) {
   // Начало учебного года
   const academYBegin = moment(config.academYBegin, 'DD/MM/YYYY')
     .tz(config.timeZone, true)
-    .locale(config.locale);
+    .locale(config.locale)
+    .startOf('week').isoWeekday(1);
 
   // Выполнение команд пользователя
   require('./repositories/UserRepository').find(chatId, function (user) {
@@ -79,8 +80,8 @@ var run = function (chatId, commands) {
     // Формирование объекта для отправки
     let data = { bot: bot, user: user[0] };
     data.today = today;
-    data.week = moment(today).startOf('week').isoWeekday(1).week() - academYBegin.week() + 1;
     data.anotherGroup = commands.anotherGroup;
+    data.week = moment(today).startOf('week').isoWeekday(1).week() - academYBegin.week() + 1;
 
     // Получение расписания с сайта
     require('./helpers/schedule/scheduleGetter')(data, function (schedule) {

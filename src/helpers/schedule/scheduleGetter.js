@@ -224,13 +224,6 @@ module.exports = function (param, callback) {
             if (isLogIn) getScheduleRosdistant(resolve);
             else authorization(resolve);
           });
-          // checkLogIn().then((isLogIn) => {
-          //   if (isLogIn) checkLogIn().then((isLogIn) => {
-          //     if (isLogIn) getScheduleRosdistant(resolve);
-          //     else authorization(resolve);
-          //   });
-          //   else authorization(resolve);
-          // });
         })
         .catch((err) => {
           console.error(err);
@@ -261,11 +254,10 @@ module.exports = function (param, callback) {
           let startSearching = false;
           $('.container .row .col-lg-8 .card-body p').each(function () {
             let name = $(this).text().trim();
-            if (name.includes(week + ' неделя'))
+            if (name.replace(/\s+/g, '').match(new RegExp(week + 'неделя')))
               startSearching = true;
             else if (startSearching) {
-              console.log(name);
-              if (!name || !name.length)
+              if (name.length && name.replace(/\s+/g, '').match(/\d+неделя/))
                 return false;
               if (name === inst) {
                 link = $(this).find('a').attr('href');
