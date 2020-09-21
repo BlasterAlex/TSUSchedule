@@ -143,7 +143,7 @@ module.exports = function (param, callback) {
 
                 const teacher = html.match(/<b>Преподаватель:<\/b>\s*([^<]+)<br>/);
                 const audience = html.match(/<b>Аудитория:<\/b>\s*([^<]+)<br>/);
-                const link = html.match(/<a href="(.*)">/);
+                const link = html.match(/<a href="([^"]+)">/);
 
                 // Получение объекта даты для сравнения
                 const getTime = t => {
