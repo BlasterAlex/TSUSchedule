@@ -7,7 +7,6 @@ var bot;
 if (process.env.TELEGRAM_TOKEN) {
   bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
   bot.setWebHook(process.env.HEROKU_URL + bot.token);
-  console.log(bot.token);
 } else {
   bot = new TelegramBot(require('../config/private.json').TELEGRAM_TOKEN, {
     polling: true,
@@ -22,6 +21,9 @@ if (process.env.TELEGRAM_TOKEN) {
 }
 
 console.log('Bot server started in the ' + (process.env.NODE_ENV || 'development') + ' mode');
+
+// Пользовательские уведомления
+require('./helpers/notify').createCronJobs();
 
 // Обработка сообщений
 bot.onText(/(.+)/, (msg) => {
@@ -41,10 +43,15 @@ bot.on('callback_query', (msg) => {
 });
 
 // Вывод ошибок
-bot.on('polling_error', (err) => console.log(err));
+bot.on('polling_error', (err) => console.error(err));
+
+// Получение расписания с сайта
+const scheduleGetter = (data, callback) => {
+  require('./helpers/schedule/scheduleGetter')(data, callback);
+};
 
 // Запуск основного алгоритма
-var run = function (chatId, commands) {
+const run = (chatId, commands) => {
 
   // Сегодня
   var today = moment().tz(config.timeZone, true).locale(config.locale);
@@ -80,15 +87,16 @@ var run = function (chatId, commands) {
     // Формирование объекта для отправки
     let data = { bot: bot, user: user[0] };
     data.today = today;
+    data.silenceMode = commands.silenceMode;
     data.anotherGroup = commands.anotherGroup;
     data.week = moment(today).startOf('week').isoWeekday(1).week() - academYBegin.week() + 1;
 
     // Получение расписания с сайта
-    require('./helpers/schedule/scheduleGetter')(data, function (schedule) {
+    scheduleGetter(data, schedule => {
 
       // Требуется расписание на один день
       if (commands.onWeek === false)
-        return require('./commands/user/getOneDay')({
+        return require('./commands/user/getOneDay').allDay({
           bot: bot,
           chatId: chatId,
           today: today,
@@ -110,4 +118,4 @@ var run = function (chatId, commands) {
 
 };
 
-module.exports = { bot, run };
+module.exports = { bot, run, scheduleGetter };

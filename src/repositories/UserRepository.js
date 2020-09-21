@@ -32,3 +32,9 @@ module.exports.updateName = function (chatId, fullName) {
     if (err) console.error(err);
   });
 };
+
+module.exports.setNotify = function (chatId, notifications) {
+  User.findOneAndUpdate({ _id: chatId }, { notifications: notifications }, { upsert: true }, function (err) {
+    if (err) console.error(err);
+  });
+};

@@ -14,6 +14,7 @@ module.exports = function (bot, chatId, msg) {
     onWeek: false
   };
 
+  // Перевод из нижнего в обычный регистр
   var normalRegister = lower => {
     if (lower.length) {
       const start = lowerMsg.indexOf(lower);
@@ -100,6 +101,22 @@ module.exports = function (bot, chatId, msg) {
       commands.exit = true;
       require('../../commands/user/keyboard')(bot, msg);
       break;
+
+    case (lowerMsg.match(/(\/notifications|уведс|мои уведомления)/) || {}).input: {
+      commands.exit = true;
+      require('../notify').getList(bot, chatId);
+      break;
+    }
+    case (lowerMsg.match(/(\/delnotify|удалить уведомления)/) || {}).input: {
+      commands.exit = true;
+      require('../notify').clearList(bot, chatId);
+      break;
+    }
+    case (match = lowerMsg.match(/(\/notify|увед|уведомление)\s*(.*)/) || {}).input: {
+      commands.exit = true;
+      require('../notify').createNotify({ bot: bot, chatId: chatId, notify: match[2] });
+      break;
+    }
 
     case '/whoami':
     case 'кто я':

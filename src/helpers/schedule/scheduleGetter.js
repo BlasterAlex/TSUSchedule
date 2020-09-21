@@ -15,12 +15,13 @@ var userCookies = new Map();
 
 module.exports = function (param, callback) {
 
-  var bot = param.bot;
+  const bot = param.bot;
   const user = param.user;
   const chatId = user._id;
   const today = param.today;
   const week = param.week;
   const group = user.group;
+  const silenceMode = param.silenceMode;
   const anotherGroup = param.anotherGroup;
 
   // Страница Росдистант
@@ -43,8 +44,7 @@ module.exports = function (param, callback) {
 
   // Авторизация пользователя в системе
   var authorization = resolve => {
-    bot.sendMessage(chatId, 'Авторизация в системе Росдистант, ожидайте...').then(function (sender) {
-      const messageId = sender.message_id;
+    const foo = (sender) => {
       require('../auth').getRosdistant(bot, chatId, function (user) {
         (async () => {
           try {
@@ -109,18 +109,21 @@ module.exports = function (param, callback) {
             return bot.sendMessage(chatId,
               'Ошибка авторизации:\n' + err.message, { parse_mode: 'markdown' });
           } finally {
-            bot.deleteMessage(chatId, messageId);
+            if (sender)
+              bot.deleteMessage(chatId, sender.message_id);
           }
         })();
 
       });
-    });
+    };
+    if (silenceMode)
+      return foo();
+    bot.sendMessage(chatId, 'Авторизация в системе Росдистант, ожидайте...').then(foo);
   };
 
   // Получение расписания с страницы пользователя
   var getScheduleRosdistant = resolve => {
-    bot.sendMessage(chatId, 'Получение расписания, ожидайте...').then(function (sender) {
-      const messageId = sender.message_id;
+    const bar = (sender) => {
       (async () => {
         try {
 
@@ -128,8 +131,7 @@ module.exports = function (param, callback) {
           await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.2.1.min.js' });
 
           // Разбор расписания
-          let schedule = await page.evaluate(() => {
-            const pairNumbers = ['08:30', '10:15', '12:45', '14:30', '16:15', '18:00'];
+          let schedule = await page.evaluate((pairNumbers) => {
             const $ = window.$;
             var array = [];
 
@@ -180,7 +182,7 @@ module.exports = function (param, callback) {
             });
 
             return array;
-          });
+          }, config.pairNumbers);
 
           // Работа с полученным расписанием
           if (chatId == adminId) {
@@ -198,10 +200,14 @@ module.exports = function (param, callback) {
           console.log(err);
         } finally {
           page.browser().close();
-          bot.deleteMessage(chatId, messageId);
+          if (sender)
+            bot.deleteMessage(chatId, sender.message_id);
         }
       })();
-    });
+    };
+    if (silenceMode)
+      return bar();
+    bot.sendMessage(chatId, 'Получение расписания, ожидайте...').then(bar);
   };
 
   // Получение расписания с Росдистант

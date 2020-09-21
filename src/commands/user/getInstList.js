@@ -4,7 +4,7 @@ module.exports = function (bot, chatId) {
       return bot.sendMessage(chatId, 'На данный момент ни один институт не доступен, прошу прощения',
         { parse_mode: 'markdown' });
 
-    let message = 'Доступны следующие институты:\n';
+    let message = '*Доступны следующие институты*:\n\n';
     list.forEach(inst => {
       message += '- ' + inst.name + '\n';
     });
