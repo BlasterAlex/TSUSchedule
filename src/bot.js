@@ -19,7 +19,6 @@ if (process.env.TELEGRAM_TOKEN) {
     }
   });
 }
-
 console.log('Bot server started in the ' + (process.env.NODE_ENV || 'development') + ' mode');
 
 // Пользовательские уведомления

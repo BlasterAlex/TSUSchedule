@@ -1,5 +1,5 @@
-const { job } = require('cron');
 const fs = require('fs');
+const logger = require('../logger');
 const CronJob = require('cron').CronJob;
 const moment = require('moment-timezone');
 const config = JSON.parse(fs.readFileSync('config/config.json'));
@@ -14,6 +14,14 @@ const addMinutes = (time, minsToAdd) => {
   const piece = time.split(':');
   const mins = piece[0] * 60 + +piece[1] + +minsToAdd;
   return D(mins % (24 * 60) / 60 | 0) + ':' + D(mins % 60);
+};
+
+// Получение строки с текущей датой (для ведения лога)
+const dateNow = () => {
+  return moment()
+    .tz(config.timeZone, true)
+    .locale('ru')
+    .format('DD MMM YYYY в h:mm:ss').capitalize();
 };
 
 // Вывод расписания на день
@@ -67,7 +75,7 @@ const beforeLesson = (bot, chatId, time, delay) => {
 
 };
 
-// Создание задачи для вывода расписания на день
+// Функция для задачи вывода расписания на день
 const everyDay = (chatId, key, time) => {
   const tmatch = time.match(/(\d{1,2}):(\d{2})/);
   const hours = tmatch[1];
@@ -85,9 +93,9 @@ const everyDay = (chatId, key, time) => {
   jobs.set(key, new CronJob(`${minutes} ${hours} * * *`, () => allDay(chatId), null, true, config.timeZone));
 };
 
-// Создание задачи для вывода расписания пар по таймеру
+// Функция для задачи вывода расписания пар по таймеру
 const beforeEachLesson = (chatId, key, time) => {
-  const ntime = time.match(/(\d+)/)[1];
+  const ntime = time.match(/(-{0,1}\d+)/)[1];
   let jobs = cronJobs.get(chatId.toString());
 
   // Удалениче текущих задач
@@ -114,7 +122,7 @@ const beforeEachLesson = (chatId, key, time) => {
   jobs.set(key, cj);
 };
 
-// Создание cron-задач на основе БД (запускается при старте сервака)
+// Создание cron-задач на основе информации из БД (запускается при старте сервака)
 const createCronJobs = () => {
   UserRepository.getAll(users => {
     nusers = users.filter(user => user.notifications);
@@ -163,7 +171,7 @@ const createNotify = (param) => {
   let time = notify.match(/(\d{1,2}:\d{2})/);
   let key = 'every_day';
   if (!time) {
-    time = notify.match(/(\d+)/);
+    time = notify.match(/(-{0,1}\d+)/);
     key = 'before_each_lesson';
     if (!time)
       return bot.sendMessage(chatId, fs.readFileSync('data/messages/notify.txt'), {
@@ -208,7 +216,7 @@ const createNotify = (param) => {
   });
 };
 
-// Получить список уведомлений
+// Получить список уведомлений (запускается пользователем)
 const getList = (bot, chatId) => {
   if (cronJobs.has(chatId.toString()))
     UserRepository.find(chatId, (user) => {
@@ -229,7 +237,7 @@ const getList = (bot, chatId) => {
     });
 };
 
-// Удалить уведомления пользователя
+// Удалить уведомления пользователя (запускается пользователем)
 const clearList = (bot, chatId) => {
   if (cronJobs.has(chatId.toString()))
     UserRepository.find(chatId, (user) => {
