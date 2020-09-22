@@ -64,6 +64,7 @@ const beforeLesson = (bot, chatId, time, delay) => {
       require('../../bot').scheduleGetter(data, schedule => {
         const day = schedule.find(day => day.date === today.format('DD.MM.YYYY'));
         const pair = day.courses.find(pair => pair.time.includes(time));
+        console.log(pair);
         if (pair) {
           bot.sendMessage(chatId, `*${delay} мин до пары*\n\n` +
             require('../../commands/user/getOneDay').onePair(pair), {
@@ -94,7 +95,7 @@ const everyDay = (chatId, key, time) => {
 };
 
 // Функция для задачи вывода расписания пар по таймеру
-const beforeEachLesson = (chatId, key, time) => {
+const beforeEachLesson = (bot, chatId, key, time) => {
   const ntime = time.match(/(-{0,1}\d+)/)[1];
   let jobs = cronJobs.get(chatId.toString());
 
@@ -123,7 +124,7 @@ const beforeEachLesson = (chatId, key, time) => {
 };
 
 // Создание cron-задач на основе информации из БД (запускается при старте сервака)
-const createCronJobs = () => {
+const createCronJobs = (bot) => {
   UserRepository.getAll(users => {
     nusers = users.filter(user => user.notifications);
     let left = nusers.length;
@@ -149,7 +150,7 @@ const createCronJobs = () => {
             if (key === 'every_day')
               everyDay(chatId, key, time);
             else
-              beforeEachLesson(chatId, key, time);
+              beforeEachLesson(bot, chatId, key, time);
             if (--nleft === 0) res();
           });
           if (nleft === 0) res();
@@ -204,7 +205,7 @@ const createNotify = (param) => {
     if (key === 'every_day')
       everyDay(chatId, key, time);
     else
-      beforeEachLesson(chatId, key, time);
+      beforeEachLesson(bot, chatId, key, time);
 
     bot.sendMessage(chatId, 'Уведомление успешно ' + (lastNotify ? 'обновлено' : 'создано') + ':\n\n' +
       '*' + (key === 'every_day' ? `каждый день в ${time}` : `за ${time} мин до пары`) + '*' +
