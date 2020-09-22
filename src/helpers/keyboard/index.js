@@ -1,12 +1,12 @@
 const fs = require('fs');
 
-module.exports = function (bot, msg) {
-  let chatId = msg.chat.id;
-  let words = msg.text.split(' ');
+module.exports = (bot, msg) => {
+  const chatId = msg.chat.id;
+  const words = msg.text.split(' ');
 
-  if (words.length < 2) {
+  if (words.length < 2)
     return bot.sendMessage(chatId, fs.readFileSync('data/messages/keyboard.txt'), { parse_mode: 'markdown' });
-  }
+
   switch (words[1]) {
     case 'on': { // создать клавиатуру 
 

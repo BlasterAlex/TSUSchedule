@@ -45,9 +45,7 @@ bot.on('callback_query', (msg) => {
 bot.on('polling_error', (err) => console.error(err));
 
 // Получение расписания с сайта
-const scheduleGetter = (data, callback) => {
-  require('./helpers/schedule/scheduleGetter')(data, callback);
-};
+const scheduleGetter = (data, callback) => require('./helpers/schedule/scheduleGetter')(data, callback);
 
 // Запуск основного алгоритма
 const run = (chatId, commands) => {

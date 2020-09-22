@@ -22,9 +22,10 @@ module.exports = function (bot) {
 
     // Обновление имен 
     require('./commands/admin/updateNames')(bot, (t) => {
-      text += t + '\n';
+      text += t;
       logger.write(fileName, text);
     });
 
   }, null, true, config.timeZone);
+
 };

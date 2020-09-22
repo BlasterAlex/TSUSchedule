@@ -17,11 +17,11 @@ const addMinutes = (time, minsToAdd) => {
 };
 
 // Получение строки с текущей датой (для ведения лога)
-const dateNow = () => {
+const datetime = () => {
   return moment()
     .tz(config.timeZone, true)
     .locale('ru')
-    .format('DD MMM YYYY в h:mm:ss').capitalize();
+    .format('DD.MM.YYYY hh:mm:ss');
 };
 
 // Вывод расписания на день
@@ -64,7 +64,6 @@ const beforeLesson = (bot, chatId, time, delay) => {
       require('../../bot').scheduleGetter(data, schedule => {
         const day = schedule.find(day => day.date === today.format('DD.MM.YYYY'));
         const pair = day.courses.find(pair => pair.time.includes(time));
-        console.log(pair);
         if (pair) {
           bot.sendMessage(chatId, `*${delay} мин до пары*\n\n` +
             require('../../commands/user/getOneDay').onePair(pair), {
@@ -87,7 +86,7 @@ const everyDay = (chatId, key, time) => {
   if (jobs.has(key)) {
     jobs.get(key).stop();
     jobs.delete(key);
-    console.log(`${chatId}: overwrited notify "${key}"`);
+    logger.write('notify', `[${datetime()}] overwrited notify "${key}" for user ${chatId}`);
   }
 
   // Установка новой задачи
@@ -103,7 +102,7 @@ const beforeEachLesson = (bot, chatId, key, time) => {
   if (jobs.has(key)) {
     let tabs = jobs.get(key);
     let i = tabs.length;
-    console.log(`${chatId}: overwrited notify "${key}" (${i} notifications)`);
+    logger.write('notify', `[${datetime()}] overwrited notify "${key}" (${i} notifications) for user ${chatId}`);
     while (--i >= 0) {
       tabs[i].stop();
       tabs.splice(i, 1);
@@ -251,7 +250,7 @@ const clearList = (bot, chatId) => {
             let tabs = jobs.get(entry[0]);
             if (Array.isArray(tabs)) {
               let i = tabs.length;
-              console.log(`${chatId}: removed notify "${entry[0]}" (${i} notifications)`);
+              logger.write('notify', `[${datetime()}] removed notify "${entry[0]}" (${i} notifications) for user ${chatId}`);
               while (--i >= 0) {
                 tabs[i].stop();
                 tabs.splice(i, 1);
@@ -260,7 +259,7 @@ const clearList = (bot, chatId) => {
             } else {
               tabs.stop();
               jobs.delete(entry[0]);
-              console.log(`${chatId}: removed notify "${entry[0]}"`);
+              logger.write('notify', `[${datetime()}] removed notify "${entry[0]}" for user ${chatId}`);
             }
           }
         UserRepository.setNotify(chatId, new Map());

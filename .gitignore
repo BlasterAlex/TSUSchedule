@@ -4,4 +4,5 @@ node_modules
 
 data/mailing
 config/private.json
-log/cronjobs
+log/**
+!.gitkeep

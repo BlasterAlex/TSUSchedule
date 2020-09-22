@@ -5,7 +5,7 @@ const path = require('path');
 const write = (fileName, text) => {
 
   // Путь файла
-  const file = path.join('log', fileName);
+  const file = path.join(process.cwd(), 'log', fileName);
 
   // Контроль макс размера log-файла
   if (fs.existsSync(file)) {
@@ -20,7 +20,7 @@ const write = (fileName, text) => {
   }
 
   // Запись в файл
-  fs.appendFileSync(file, text);
+  fs.appendFileSync(file, text + '\n');
 
 };
 

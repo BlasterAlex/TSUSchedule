@@ -99,7 +99,7 @@ module.exports = function (bot, chatId, msg) {
       break;
     case (lowerMsg.match(/\/keyboard|клавиатура|клав/) || {}).input:
       commands.exit = true;
-      require('../../commands/user/keyboard')(bot, msg);
+      require('../../helpers/keyboard')(bot, msg);
       break;
 
     case (lowerMsg.match(/(\/notifications|уведс|мои уведомления)/) || {}).input: {
