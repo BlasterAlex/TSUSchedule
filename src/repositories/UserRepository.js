@@ -1,7 +1,7 @@
 var User = require('../models/User');
 
-module.exports.getAll = function (callback) {
-  User.find({}, function (err, list) {
+module.exports.getAll = callback => {
+  User.find({}, (err, list) => {
     if (err)
       return console.error(err);
 
@@ -9,8 +9,8 @@ module.exports.getAll = function (callback) {
   });
 };
 
-module.exports.find = function (chatId, callback) {
-  User.find({ _id: chatId }, function (err, user) {
+module.exports.find = (chatId, callback) => {
+  User.find({ _id: chatId }, (err, user) => {
     if (err)
       return console.error(err);
 
@@ -18,8 +18,8 @@ module.exports.find = function (chatId, callback) {
   });
 };
 
-module.exports.findByGroup = function (group, callback) {
-  User.find({ group: group }, function (err, list) {
+module.exports.findByGroup = (group, callback) => {
+  User.find({ group: group }, (err, list) => {
     if (err)
       return console.error(err);
 
@@ -27,14 +27,20 @@ module.exports.findByGroup = function (group, callback) {
   });
 };
 
-module.exports.updateName = function (chatId, fullName) {
-  User.findOneAndUpdate({ _id: chatId }, { fullName: fullName }, { upsert: true }, function (err) {
+module.exports.updateName = (chatId, fullName) => {
+  User.findOneAndUpdate({ _id: chatId }, { fullName: fullName }, { upsert: true }, err => {
     if (err) console.error(err);
   });
 };
 
-module.exports.setNotify = function (chatId, notifications) {
-  User.findOneAndUpdate({ _id: chatId }, { notifications: notifications }, { upsert: true }, function (err) {
+module.exports.setNotify = (chatId, notifications) => {
+  User.findOneAndUpdate({ _id: chatId }, { notifications: notifications }, { upsert: true }, err => {
+    if (err) console.error(err);
+  });
+};
+
+module.exports.setCookies = (chatId, cookies) => {
+  User.findOneAndUpdate({ _id: chatId }, { cookies: cookies }, { upsert: true }, err => {
     if (err) console.error(err);
   });
 };

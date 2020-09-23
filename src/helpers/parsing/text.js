@@ -139,9 +139,9 @@ module.exports = function (bot, chatId, msg) {
       break;
     case '/list':
     case 'список':
-    case 'институты':
+    case 'группы':
       commands.exit = true;
-      require('../../commands/user/getInstList')(bot, chatId);
+      require('../../commands/user/getGroupList')(bot, chatId);
       break;
     default:
       commands.exit = true;

@@ -224,10 +224,11 @@ const getList = (bot, chatId) => {
       const jobs = cronJobs.get(chatId.toString());
 
       message = '';
-      for (const entry of notifications.entries()) {
-        if (jobs.has(entry[0]))
-          message += '- ' + (entry[0] === 'every_day' ? `каждый день в ${entry[1]}` : `за ${entry[1]} мин до пары`) + '\n';
-      }
+      if (notifications)
+        for (const entry of notifications.entries()) {
+          if (jobs.has(entry[0]))
+            message += '- ' + (entry[0] === 'every_day' ? `каждый день в ${entry[1]}` : `за ${entry[1]} мин до пары`) + '\n';
+        }
 
       bot.sendMessage(chatId, message.length ? `*Ваши уведомления*:\n\n${message}\n` +
         'Для удаления всех уведомлений введите команду /delnotify' :
@@ -235,6 +236,11 @@ const getList = (bot, chatId) => {
         parse_mode: 'markdown'
       });
     });
+
+  else bot.sendMessage(chatId, 'Вы не создали ни одно уведомление\n\n' +
+    fs.readFileSync('data/messages/notify.txt'), {
+    parse_mode: 'markdown'
+  });
 };
 
 // Удалить уведомления пользователя (запускается пользователем)

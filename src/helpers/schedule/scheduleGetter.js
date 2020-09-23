@@ -7,17 +7,16 @@ const moment = require('moment-timezone'); // for working with dates
 const puppeteer = require('puppeteer'); // for working with a virtual browser
 
 const config = require('../../../config/config.json');
+const UserRepository = require('../../repositories/UserRepository');
 const InstituteRepository = require('../../repositories/InstituteRepository');
 const adminId = process.env.ADMIN_CHAT_ID || require('../../../config/private.json').ADMIN_CHAT_ID;
-
-// Массив открытых страниц пользователей
-var userCookies = new Map();
 
 module.exports = function (param, callback) {
 
   const bot = param.bot;
   const user = param.user;
   const chatId = user._id;
+  const cookies = user.cookies;
   const today = param.today;
   const week = param.week;
   const group = user.group;
@@ -30,8 +29,8 @@ module.exports = function (param, callback) {
   // Проверка статуса авторизации на Росдистант
   async function checkLogIn() {
     // Установить сохраненные куки
-    if (userCookies.has(chatId))
-      await page.setCookie(...userCookies.get(chatId));
+    if (cookies)
+      await page.setCookie(...cookies);
 
     // Перейти на страницу расписания
     await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
@@ -71,9 +70,7 @@ module.exports = function (param, callback) {
                   else
                     setTimeout(interval, 2000);
                 } catch (err) {
-                  return bot.sendMessage(chatId,
-                    'Ошибка получения расписания с Росдистант\nПопробуйте еще раз',
-                    { parse_mode: 'markdown' });
+                  console.error(err);
                 }
               };
               setTimeout(interval, 2000);
@@ -98,8 +95,7 @@ module.exports = function (param, callback) {
             }
 
             // Кэширование страницы
-            const cookies = await page.cookies();
-            userCookies.set(chatId, cookies);
+            UserRepository.setCookies(chatId, await page.cookies());
 
             // Получение расписания с сайта
             getScheduleRosdistant(resolve);
@@ -191,7 +187,7 @@ module.exports = function (param, callback) {
               contentType: 'image/png',
             });
             let bodyHTML = await page.evaluate(() => document.body.innerHTML);
-            bot.sendDocument(chatId, Buffer.from(bodyHTML, 'utf8'), { fileName: 'index.html' });
+            bot.sendDocument(chatId, Buffer.from(bodyHTML, 'utf8'), {}, { fileName: 'index.html' });
           }
 
           resolve(schedule);
