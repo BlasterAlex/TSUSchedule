@@ -28,17 +28,25 @@ module.exports = function (param, callback) {
 
   // Проверка статуса авторизации на Росдистант
   async function checkLogIn() {
-    // Установить сохраненные куки
-    if (cookies)
-      await page.setCookie(...cookies);
+    try {
 
-    // Перейти на страницу расписания
-    await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
+      // Установить сохраненные куки
+      if (cookies)
+        await page.setCookie(...cookies);
 
-    // Проверить статус пользователя в системе
-    return await page.evaluate(() => {
-      return (!document.querySelector('.loginform')) ? true : false;
-    });
+      // Перейти на страницу расписания
+      await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
+
+      // Проверить статус пользователя в системе
+      return await page.evaluate(() => {
+        return (!document.querySelector('.loginform')) ? true : false;
+      });
+
+    } catch (err) {
+      page.browser().close();
+      return bot.sendMessage(chatId,
+        'Ошибка авторизации:\n' + err.message, { parse_mode: 'markdown' });
+    }
   }
 
   // Авторизация пользователя в системе
@@ -193,7 +201,7 @@ module.exports = function (param, callback) {
           resolve(schedule);
 
         } catch (err) {
-          console.log(err);
+          console.error(err);
         } finally {
           page.browser().close();
           if (sender)
@@ -249,7 +257,7 @@ module.exports = function (param, callback) {
         // Поиск нужного файла с расписанием
         request(config.scheduleURL, function (err, res) {
           if (err) throw err;
-          var $ = cheerio.load(res.body);
+          var $ = cheerio.load(res.body, { decodeEntities: false });
 
           // Поиск ссылки на расписание
           let link;
@@ -261,9 +269,17 @@ module.exports = function (param, callback) {
             else if (startSearching) {
               if (name.length && name.replace(/\s+/g, '').match(/\d+неделя/))
                 return false;
-              if (name === inst) {
-                link = $(this).find('a').attr('href');
-                return false;
+
+              // Поиск ссылок
+              let matches;
+              let regExp = /<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g;
+              /* eslint-disable no-cond-assign */
+              while (matches = regExp.exec($(this).html())) {
+                const name = matches[2];
+                if (name === inst) {
+                  link = matches[1];
+                  return false;
+                }
               }
             }
           });

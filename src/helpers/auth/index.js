@@ -69,6 +69,7 @@ var registrate = function (bot, chatId, data) {
                   '--disable-setuid-sandbox'
                 ]
               });
+
               const page = await browser.newPage();
               await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
 
