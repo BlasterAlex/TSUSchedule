@@ -15,6 +15,9 @@ const onePair = course => {
     case 'Лек':
       coursetype = 'Лекция';
       break;
+    case 'СР':
+      coursetype = 'СР';
+      break;
     default:
       coursetype = '';
   }

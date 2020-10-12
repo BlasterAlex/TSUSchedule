@@ -96,7 +96,7 @@ module.exports = function (param) {
             text += '<span style="color: #2b2a2a; font-weight: bold">' + course.coursename + '</span><br>';
 
           // Практики и лабы
-          else if (course.coursetype === 'Пр' || course.coursetype === 'Лаб')
+          else if (course.coursetype === 'Пр' || course.coursetype === 'Лаб' || course.coursetype === 'СР')
             text += '<span style="color: #2e58ff; font-weight: bold">' + course.coursename + ' (' + course.coursetype + ')' + '</span><br>';
 
           // Лекции

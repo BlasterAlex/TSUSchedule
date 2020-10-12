@@ -335,7 +335,7 @@ module.exports = function (param, callback) {
                           if (text && dayNum < 6) {
                             var timeMatch = text.match(/\[(.*)\]/);
                             var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)/);
-                            var teaher = text.match(/([А-Я][А-Яа-я]+\s[А-Я]\.[А-Я]\.)\n/);
+                            var teaher = text.match(/([А-Я][a-zA-Zа-яА-ЯёЁ]+\s([А-Я]\.){1,2})\n/);
                             var audience = text.match(/([А-Я][А-Яа-я]*(-\d+)*)\n/);
                             var course = {
                               'pairNum': parseInt(pairNum),
