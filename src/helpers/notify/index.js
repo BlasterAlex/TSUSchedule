@@ -32,7 +32,7 @@ const allDay = (chatId) => {
     today.add(1, 'days');
     commands.fromNow = 1;
   }
-  if (today.day() !== 6 || today.day() !== 0)
+  if (today.day() !== 6 && today.day() !== 0)
     require('../../bot').run(chatId, commands);
 };
 
@@ -48,7 +48,7 @@ const beforeLesson = (bot, chatId, time, delay) => {
     .locale(config.locale)
     .startOf('week').isoWeekday(1);
 
-  if (today.day() !== 6 || today.day() !== 0)
+  if (today.day() !== 6 && today.day() !== 0)
     require('../../repositories/UserRepository').find(chatId, function (user) {
       if (user.length === 0)
         return console.log(`Пользователь ${chatId} не зарегистрировался в боте`);
