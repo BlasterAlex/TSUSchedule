@@ -264,15 +264,19 @@ module.exports = function (param, callback) {
           let startSearching = false;
           $('.container .row .col-lg-8 .card-body p').each(function () {
             let name = $(this).text().trim();
+
             if (name.replace(/\s+/g, '').match(new RegExp(week + 'неделя')))
               startSearching = true;
-            else if (startSearching) {
-              if (name.length && name.replace(/\s+/g, '').match(/\d+неделя/))
+
+            if (startSearching) {
+
+              if (name.length && !name.replace(/\s+/g, '').match(new RegExp(week + 'неделя')))
                 return false;
 
               // Поиск ссылок
               let matches;
               let regExp = /<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g;
+
               /* eslint-disable no-cond-assign */
               while (matches = regExp.exec($(this).html())) {
                 const name = matches[2];
@@ -281,6 +285,7 @@ module.exports = function (param, callback) {
                   return false;
                 }
               }
+
             }
           });
 
