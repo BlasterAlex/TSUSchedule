@@ -35,7 +35,7 @@ module.exports = function (param, callback) {
         await page.setCookie(...cookies);
 
       // Перейти на страницу расписания
-      await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
+      await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'], timeout: 0 });
 
       // Проверить статус пользователя в системе
       return await page.evaluate(() => {

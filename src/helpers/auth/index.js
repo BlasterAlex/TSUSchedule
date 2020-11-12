@@ -71,7 +71,7 @@ var registrate = function (bot, chatId, data) {
               });
 
               const page = await browser.newPage();
-              await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'] });
+              await page.goto(config.scheduleRosdistant, { waitUntil: ['networkidle0', 'domcontentloaded'], timeout: 0 });
 
               try {
 

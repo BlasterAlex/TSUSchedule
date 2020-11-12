@@ -28,10 +28,18 @@ const datetime = () => {
 const allDay = (chatId) => {
   var commands = { onWeek: false, fromNow: 0, silenceMode: true };
   var today = moment().tz(config.timeZone, true).locale(config.locale);
+
+  // В воскресенье вывести расписание на неделю
+  if (today.day() === 0)
+    commands.onWeek = true;
+
+  // Вечером вывести расписание на след день
   if (today.hour() >= 17) {
     today.add(1, 'days');
     commands.fromNow = 1;
   }
+
+  // Не выводить расписание на субботу и воскресенье
   if (today.day() !== 6 && today.day() !== 0)
     require('../../bot').run(chatId, commands);
 };
