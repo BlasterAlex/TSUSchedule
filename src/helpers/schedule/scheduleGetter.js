@@ -139,6 +139,11 @@ module.exports = function (param, callback) {
             const $ = window.$;
             var array = [];
 
+            // Проверка наличия блока расписания на странице
+            if (!$('.mycourses').length)
+              return;
+
+            // Получение расписания
             $('.mycourses .coursebox').each(function () {
               const html = $(this).html();
               const dateStr = html.match(/<b>(\d{1,2}:\d{2})\s+(\d{1,2}.\d{2}.\d{4})/);
@@ -198,7 +203,11 @@ module.exports = function (param, callback) {
             bot.sendDocument(chatId, Buffer.from(bodyHTML, 'utf8'), {}, { fileName: 'index.html' });
           }
 
-          resolve(schedule);
+          // Не удалось перейти на страницу с расписанием
+          if (schedule != undefined)
+            resolve(schedule);
+          else
+            bot.sendMessage(chatId, fs.readFileSync('data/messages/someRosdistantError.txt'), { parse_mode: 'markdown' });
 
         } catch (err) {
           console.error(err);
@@ -262,32 +271,45 @@ module.exports = function (param, callback) {
           // Поиск ссылки на расписание
           let link;
           let startSearching = false;
-          $('.container .row .col-lg-8 .card-body p').each(function () {
-            let name = $(this).text().trim();
+          $('.container .row .col-lg-8 .card-body').children()
+            .filter(function () { return $(this).text().trim().length; })
+            .each(function () {
+              let name = $(this).text().trim();
 
-            if (name.replace(/\s+/g, '').match(new RegExp(week + 'неделя')))
-              startSearching = true;
-
-            if (startSearching) {
-
-              if (name.length && !name.replace(/\s+/g, '').match(new RegExp(week + 'неделя')))
-                return false;
-
-              // Поиск ссылок
-              let matches;
-              let regExp = /<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g;
-
-              /* eslint-disable no-cond-assign */
-              while (matches = regExp.exec($(this).html())) {
-                const name = matches[2];
-                if (name === inst) {
-                  link = matches[1];
-                  return false;
-                }
+              // Поиск начала недели
+              if (!startSearching && name.replace(/\s+/g, '').match(new RegExp(week + 'неделя'))) {
+                startSearching = true;
               }
 
-            }
-          });
+              if (startSearching) {
+
+                // Неделя закончилась, ссылка не найдена
+                if (name.replace(/\s+/g, '').match(/\d+неделя/) &&
+                  !name.replace(/\s+/g, '').match(new RegExp(week + 'неделя')))
+                  return false;
+
+                // Если сам блок является ссылкой
+                if ($(this).attr('href') && name === inst) {
+                  link = $(this).attr('href');
+                  return false;
+                }
+
+                // Поиск ссылок
+                let matches;
+                let regExp = /<a href="([^"]+)"[^>]*>([^<]+)<\/a>/g;
+
+                // Если есть ссылки в дочерних блоках
+                /* eslint-disable no-cond-assign */
+                while (matches = regExp.exec($(this).html())) {
+                  const name = matches[2];
+                  if (name === inst) {
+                    link = matches[1];
+                    return false;
+                  }
+                }
+
+              }
+            });
 
           // Нет расписания
           if (!link) {
@@ -337,11 +359,12 @@ module.exports = function (param, callback) {
                           if (!pairNum)
                             pairNum = match[1];
                         } else {  // это предмет
-                          if (text && dayNum < 6) {
-                            var timeMatch = text.match(/\[(.*)\]/);
-                            var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)/);
-                            var teaher = text.match(/([А-Я][a-zA-Zа-яА-ЯёЁ]+\s([А-Я]\.){1,2})\n/);
-                            var audience = text.match(/([А-Я][А-Яа-я]*(-\d+)*)\n/);
+                          if (text && text.length && dayNum < 6) {
+                            // console.log(text);
+                            var courseName = text.match(/^(.*)\s+\(([А-Я][А-Яа-я]*)\)$/m);
+                            var teaher = text.match(/^([А-Я][a-zA-Zа-яА-ЯёЁ]+\s([А-Я]\.){1,2})$/m);
+                            var audience = text.match(/^([А-Я][А-Яа-я]*(-\d+)*)$/m);
+                            var timeMatch = text.match(/^\s*\[(.*)\]\s*$/m);
                             var course = {
                               'pairNum': parseInt(pairNum),
                               'time': timeMatch && timeMatch.length > 1 ? timeMatch[1] : '',
@@ -416,10 +439,10 @@ module.exports = function (param, callback) {
   // Асинхронное получение расписания с Росдистант и сайта ТГУ
   var scheduleGetter = async () => {
     const schTSU = await getSchedule();
-    if (!anotherGroup) {
-      const schRos = await rosdistant();
-      return callback(mergeSchedules(schTSU, schRos));
-    }
+    // if (!anotherGroup) {
+    //   const schRos = await rosdistant();
+    //   return callback(mergeSchedules(schTSU, schRos));
+    // }
     callback(schTSU);
   };
 
