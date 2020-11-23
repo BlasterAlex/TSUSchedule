@@ -439,10 +439,10 @@ module.exports = function (param, callback) {
   // Асинхронное получение расписания с Росдистант и сайта ТГУ
   var scheduleGetter = async () => {
     const schTSU = await getSchedule();
-    // if (!anotherGroup) {
-    //   const schRos = await rosdistant();
-    //   return callback(mergeSchedules(schTSU, schRos));
-    // }
+    if (!anotherGroup) {
+      const schRos = await rosdistant();
+      return callback(mergeSchedules(schTSU, schRos));
+    }
     callback(schTSU);
   };
 
