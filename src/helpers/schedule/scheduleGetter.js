@@ -134,6 +134,11 @@ module.exports = function (param, callback) {
           // Добавление JQuery для парсинга
           await page.addScriptTag({ url: 'https://code.jquery.com/jquery-3.2.1.min.js' });
 
+          // Обработка сообщений консоли виртуальной страницы
+          await page.on('console', msg => {
+            console.log(msg.text());
+          });
+
           // Разбор расписания
           let schedule = await page.evaluate((pairNumbers) => {
             const $ = window.$;
@@ -146,7 +151,7 @@ module.exports = function (param, callback) {
             // Получение расписания
             $('.mycourses .coursebox').each(function () {
               const html = $(this).html();
-              const dateStr = html.match(/<b>(\d{1,2}:\d{2})\s+(\d{1,2}.\d{2}.\d{4})/);
+              const dateStr = $(this).text().match(/(\d{1,2}:\d{2})-\d{1,2}:\d{2}\s*(\d{1,2}.\d{2}.\d{4})\s*\(GMT/);
 
               if (dateStr && dateStr.length) {
                 const time = dateStr ? dateStr[1] : '';
