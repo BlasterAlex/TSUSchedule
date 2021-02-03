@@ -86,7 +86,7 @@ const run = (chatId, commands) => {
     data.today = today;
     data.silenceMode = commands.silenceMode;
     data.anotherGroup = commands.anotherGroup;
-    data.week = moment(today).startOf('week').isoWeekday(1).week() - academYBegin.week() + 1;
+    data.week = moment(today).startOf('week').isoWeekday(1).diff(academYBegin, 'week') + 1;
 
     // Получение расписания с сайта
     scheduleGetter(data, schedule => {
