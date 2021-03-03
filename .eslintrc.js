@@ -23,7 +23,7 @@ module.exports = {
       "SwitchCase": 1,
       "outerIIFEBody": 0
     }],
-    'linebreak-style': ['warn', 'unix'],
+    'linebreak-style': 'off',
     'quotes': ['warn', 'single'],
     'semi': ['warn', 'always']
   }
