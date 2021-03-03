@@ -66,7 +66,7 @@ const beforeLesson = (bot, chatId, time, delay) => {
       data.today = today;
       data.silenceMode = true;
       data.anotherGroup = false;
-      data.week = moment(today).startOf('week').isoWeekday(1).week() - academYBegin.week() + 1;
+      data.week = moment(today).startOf('week').isoWeekday(1).diff(academYBegin, 'week') + 1;
 
       // Получение расписания с сайта
       require('../../bot').scheduleGetter(data, schedule => {
